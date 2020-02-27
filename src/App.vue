@@ -7,23 +7,38 @@
     <div id="seachbar">
       <SearchBar @termChange="onTermChange"></SearchBar>
     </div>
-    <div id="content">
+    <div id="discover">
       <h1>Discover</h1>
+    </div>
+    <div id="bookgrid-container">
+    <BookGrid :books="books"></BookGrid>
     </div>
   </div>
 </template>
 
 <script>
 import SearchBar from './components/SearchBar.vue';
+import BookGrid from './components/BookGrid.vue';
+import axios from 'axios'
 
 export default {
   name:'App',
   components: {
-    SearchBar
+    SearchBar,
+    BookGrid
+  },
+  data() {
+    return { books: [] };
   },
   methods: { 	
     onTermChange(searchTerm) {
-      console.log(searchTerm)
+      axios.get('http://openlibrary.org/search.json?', {
+        params: {
+          q: searchTerm
+        }
+      }).then(response => { 
+          this.books = response.data.docs;
+      });
     }
   }
 }
@@ -39,6 +54,12 @@ export default {
 #seachbar {
   display: flex;
   justify-content: center;
+}
+
+BookGird {
+  display: inline-grid;
+  grid-template-columns: 100px 100px 100px 100px;
+  grid-template-rows: auto;
 }
 
 h1 {
