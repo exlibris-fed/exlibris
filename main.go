@@ -25,8 +25,8 @@ func main() {
     ap := activitypub.New(db)
 
     r := mux.NewRouter()
-    r.HandleFunc("/{user}/inbox", ap.HandleInbox)
-    r.HandleFunc("/{user}/outbox", ap.HandleOutbox)
+    r.HandleFunc("/{username}/inbox", ap.HandleInbox)
+    r.HandleFunc("/{username}/outbox", ap.HandleOutbox)
 
     server := &http.Server{
         Handler: r,

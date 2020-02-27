@@ -1,94 +1,112 @@
 package activitypub
 
 import (
-    "log"
-    "context"
-    "net/http"
-    "net/url"
+	"context"
+	"log"
+	"net/http"
+	"net/url"
 
-    "github.com/exlibris-fed/exlibris/activitypub/clock"
-    "github.com/exlibris-fed/exlibris/activitypub/database"
-    "github.com/exlibris-fed/exlibris/key"
+	"github.com/exlibris-fed/exlibris/activitypub/clock"
+	"github.com/exlibris-fed/exlibris/activitypub/database"
+	"github.com/exlibris-fed/exlibris/key"
 
-    "github.com/go-fed/activity/pub"
-    "github.com/go-fed/activity/streams/vocab"
-    "github.com/go-fed/activity/streams"
-    "github.com/go-fed/httpsig"
-    "github.com/jinzhu/gorm"
+	"github.com/go-fed/activity/pub"
+	"github.com/go-fed/activity/streams"
+	"github.com/go-fed/activity/streams/vocab"
+	"github.com/go-fed/httpsig"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
 const (
-    // UserAgentString is used to identify exlibris in http requests.
-    UserAgentString = "exlibris-fed" // TODO version number
+	// UserAgentString is used to identify exlibris in http requests.
+	UserAgentString = "exlibris-fed" // TODO version number
+)
+
+type contextKey string
+
+const (
+	keyUsername contextKey = "username"
 )
 
 type ActivityPub struct {
-    db *database.Database
-    clock *clock.Clock
+	db    *database.Database
+	clock *clock.Clock
 }
 
 func New(db *gorm.DB) *ActivityPub {
-    return &ActivityPub{
-        db: database.New(db),
-        clock: clock.New(),
-    }
+	return &ActivityPub{
+		db:    database.New(db),
+		clock: clock.New(),
+	}
 }
 
 func (ap *ActivityPub) HandleInbox(w http.ResponseWriter, r *http.Request) {
-    log.Printf("handlin inbox")
-    actor := pub.NewFederatingActor(
-        ap, // common
-        ap, // federating
-        ap.db, // database
-        ap.clock, // clock
-    )
+	log.Printf("handlin inbox")
+	actor := pub.NewFederatingActor(
+		ap,       // common
+		ap,       // federating
+		ap.db,    // database
+		ap.clock, // clock
+	)
 
-    // TODO
-    c := context.Background()
-    // Populate c with request-specific information
-    if handled, err := actor.PostInbox(c, w, r); err != nil {
-        // Write to w
-        return
-    } else if handled {
-        return
-    } else if handled, err = actor.GetInbox(c, w, r); err != nil {
-        log.Println("get it son")
-        // Write to w
-        return
-    } else if handled {
-        return
-    }
-    // else:
-    //
-    // Handle non-ActivityPub request, such as serving a webpage.
+	vars := mux.Vars(r)
+	username, ok := vars["username"]
+	if !ok {
+		// how did this happen? I almost want to make it a 500
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	c := context.WithValue(context.Background(), keyUsername, username)
+	if handled, err := actor.PostInbox(c, w, r); err != nil {
+		log.Printf("error handling PostInbox for user %s: %s", username, err)
+		w.WriteHeader(http.StatusInternalServerError) // TODO
+		return
+	} else if handled {
+		log.Printf("handled PostInbox for user %s", username)
+		return
+	} else if handled, err = actor.GetInbox(c, w, r); err != nil {
+		log.Printf("error handling GetInbox for user %s: %s", username, err)
+		w.WriteHeader(http.StatusInternalServerError) // TODO
+		// Write to w
+		return
+	} else if handled {
+		log.Printf("handled GetInbox for user %s", username)
+		return
+	}
+	log.Println("else...?")
+	// else:
+	//
+	// Handle non-ActivityPub request, such as serving a webpage.
 }
 
 func (ap *ActivityPub) HandleOutbox(w http.ResponseWriter, r *http.Request) {
-    log.Printf("handlin outbox")
-    actor := pub.NewFederatingActor(
-        ap, // common
-        ap, // federating
-        ap.db, // database
-        ap.clock, // clock
-    )
+	log.Printf("handlin outbox")
+	actor := pub.NewFederatingActor(
+		ap,       // common
+		ap,       // federating
+		ap.db,    // database
+		ap.clock, // clock
+	)
 
-    // TODO
-    c := context.Background()
-    // Populate c with request-specific information
-    if handled, err := actor.PostOutbox(c, w, r); err != nil {
-        // Write to w
-        return
-    } else if handled {
-        return
-    } else if handled, err = actor.GetOutbox(c, w, r); err != nil {
-        // Write to w
-        return
-    } else if handled {
-        return
-    }
-    // else:
-    //
-    // Handle non-ActivityPub request, such as serving a webpage.
+	// TODO
+	c := context.Background()
+	// Populate c with request-specific information
+	if handled, err := actor.PostOutbox(c, w, r); err != nil {
+		// Write to w
+		return
+	} else if handled {
+		return
+	} else if handled, err = actor.GetOutbox(c, w, r); err != nil {
+		// Write to w
+		return
+	} else if handled {
+		return
+	}
+	// else:
+	//
+	// Handle non-ActivityPub request, such as serving a webpage.
 }
 
 // AuthenticateGetInbox delegates the authentication of a GET to an
@@ -111,9 +129,9 @@ func (ap *ActivityPub) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 // authenticated must be true and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-    // TODO
-    log.Println("AuthenticateGetInbox")
-    return
+	// TODO how to determine if logged in?
+	log.Println("AuthenticateGetInbox")
+	return c, false
 }
 
 // AuthenticateGetOutbox delegates the authentication of a GET to an
@@ -136,8 +154,8 @@ func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWr
 // authenticated must be true and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) AuthenticateGetOutbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
 
 // GetOutbox returns the OrderedCollection inbox of the actor for this
@@ -149,8 +167,8 @@ func (ap *ActivityPub) AuthenticateGetOutbox(c context.Context, w http.ResponseW
 // Always called, regardless whether the Federated Protocol or Social
 // API is enabled.
 func (ap *ActivityPub) GetOutbox(c context.Context, r *http.Request) (vocab.ActivityStreamsOrderedCollectionPage, error) {
-    // TODO
-    return streams.NewActivityStreamsOrderedCollectionPage(), nil
+	// TODO
+	return streams.NewActivityStreamsOrderedCollectionPage(), nil
 }
 
 // NewTransport returns a new Transport on behalf of a specific actor.
@@ -177,37 +195,37 @@ func (ap *ActivityPub) GetOutbox(c context.Context, r *http.Request) (vocab.Acti
 // returned Transport so that any private credentials are able to be
 // garbage collected.
 func (ap *ActivityPub) NewTransport(c context.Context, actorBoxIRI *url.URL, gofedAgent string) (t pub.Transport, err error) {
-    // TODO don't use the default implementation
+	// TODO don't use the default implementation
 
-    // TODO get user's PK instead of making a new one each time, jfc
-    pk, err := key.New()
-    if err != nil {
-        log.Println("error generating key: " + err.Error())
-    }
+	// TODO get user's PK instead of making a new one each time, jfc
+	pk, err := key.New()
+	if err != nil {
+		log.Println("error generating key: " + err.Error())
+	}
 
-    t = pub.NewHttpSigTransport(
-        &http.Client{},
-        gofedAgent + "/" + UserAgentString,
-        ap.clock,
-        ap.signer([]string{}), // TODO headers
-        ap.signer([]string{}), // TODO headers
-        "", // TODO THIS NEEDS TO BE A PATH TO A PUBLIC KEY (ie /keys/%s)
-        pk,
-    )
-    return
+	t = pub.NewHttpSigTransport(
+		&http.Client{},
+		gofedAgent+"/"+UserAgentString,
+		ap.clock,
+		ap.signer([]string{}), // TODO headers
+		ap.signer([]string{}), // TODO headers
+		"",                    // TODO THIS NEEDS TO BE A PATH TO A PUBLIC KEY (ie /keys/%s)
+		pk,
+	)
+	return
 }
 
 func (ap *ActivityPub) signer(headers []string) httpsig.Signer {
-    signer, _, err := httpsig.NewSigner(
-        []httpsig.Algorithm{httpsig.RSA_SHA256},
-        httpsig.DigestSha256,
-        headers,
-        httpsig.Authorization,
-    )
-    if err != nil {
-        log.Println("error creating signer: " + err.Error())
-    }
-    return signer
+	signer, _, err := httpsig.NewSigner(
+		[]httpsig.Algorithm{httpsig.RSA_SHA256},
+		httpsig.DigestSha256,
+		headers,
+		httpsig.Authorization,
+	)
+	if err != nil {
+		log.Println("error creating signer: " + err.Error())
+	}
+	return signer
 }
 
 // ----- FederatingProtocol ----- //
@@ -228,8 +246,8 @@ func (ap *ActivityPub) signer(headers []string) httpsig.Signer {
 // write a response to the ResponseWriter as is expected that the caller
 // to PostInbox will do so when handling the error.
 func (ap *ActivityPub) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (context.Context, error) {
-    // TODO
-    return c, nil
+	// TODO
+	return c, nil
 }
 
 // AuthenticatePostInbox delegates the authentication of a POST to an
@@ -249,8 +267,8 @@ func (ap *ActivityPub) PostInboxRequestBodyHook(c context.Context, r *http.Reque
 // authenticated must be true and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) AuthenticatePostInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
 
 // Blocked should determine whether to permit a set of actors given by
@@ -268,8 +286,8 @@ func (ap *ActivityPub) AuthenticatePostInbox(c context.Context, w http.ResponseW
 // blocked must be false and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) Blocked(c context.Context, actorIRIs []*url.URL) (blocked bool, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
 
 // Callbacks returns the application logic that handles ActivityStreams
@@ -292,8 +310,9 @@ func (ap *ActivityPub) Blocked(c context.Context, actorIRIs []*url.URL) (blocked
 // Applications are not expected to handle every single ActivityStreams
 // type and extension. The unhandled ones are passed to DefaultCallback.
 func (ap *ActivityPub) Callbacks(c context.Context) (wrapped pub.FederatingWrappedCallbacks, other []interface{}, err error) {
-    // TODO
-    return
+	log.Println("callbacks")
+	// TODO
+	return
 }
 
 // DefaultCallback is called for types that go-fed can deserialize but
@@ -304,8 +323,9 @@ func (ap *ActivityPub) Callbacks(c context.Context) (wrapped pub.FederatingWrapp
 // type and extension, so the unhandled ones are passed to
 // DefaultCallback.
 func (ap *ActivityPub) DefaultCallback(c context.Context, activity pub.Activity) error {
-    // TODO
-    return nil
+	// TODO
+	log.Println("default callback")
+	return nil
 }
 
 // MaxInboxForwardingRecursionDepth determines how deep to search within
@@ -313,8 +333,8 @@ func (ap *ActivityPub) DefaultCallback(c context.Context, activity pub.Activity)
 //
 // Zero or negative numbers indicate infinite recursion.
 func (ap *ActivityPub) MaxInboxForwardingRecursionDepth(c context.Context) int {
-    // TODO
-    return 1
+	// TODO
+	return 1
 }
 
 // MaxDeliveryRecursionDepth determines how deep to search within
@@ -323,8 +343,8 @@ func (ap *ActivityPub) MaxInboxForwardingRecursionDepth(c context.Context) int {
 //
 // Zero or negative numbers indicate infinite recursion.
 func (ap *ActivityPub) MaxDeliveryRecursionDepth(c context.Context) int {
-    // TODO
-    return 1
+	// TODO
+	return 1
 }
 
 // FilterForwarding allows the implementation to apply business logic
@@ -335,8 +355,8 @@ func (ap *ActivityPub) MaxDeliveryRecursionDepth(c context.Context) int {
 // The activity is provided as a reference for more intelligent
 // logic to be used, but the implementation must not modify it.
 func (ap *ActivityPub) FilterForwarding(c context.Context, potentialRecipients []*url.URL, a pub.Activity) (filteredRecipients []*url.URL, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
 
 // GetInbox returns the OrderedCollection inbox of the actor for this
@@ -348,7 +368,7 @@ func (ap *ActivityPub) FilterForwarding(c context.Context, potentialRecipients [
 // Always called, regardless whether the Federated Protocol or Social
 // API is enabled.
 func (ap *ActivityPub) GetInbox(c context.Context, r *http.Request) (vocab.ActivityStreamsOrderedCollectionPage, error) {
-    // TODO
-    log.Println("getting inbox and returning vocab")
-    return streams.NewActivityStreamsOrderedCollectionPage(), nil
+	// TODO
+	log.Println("getting inbox and returning vocab")
+	return streams.NewActivityStreamsOrderedCollectionPage(), nil
 }
