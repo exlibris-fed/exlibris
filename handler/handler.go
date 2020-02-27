@@ -1,8 +1,11 @@
 package handler
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
+
+	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/jinzhu/gorm"
@@ -34,7 +37,26 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	var response []model.Book
 	for _, book := range books {
-		log.Println(book.Title)
+		b := model.Book{
+			Key:       book.Key,
+			Title:     book.Title,
+			Authors:   []model.Author{},
+			Published: book.FirstPublishYear,
+			//ISBN:      book.ISBN, // need to dedupe
+			Subjects: book.Subject,
+		}
+		for _, a := range book.AuthorName {
+			b.Authors = append(b.Authors, model.Author{Name: a})
+		}
+		response = append(response, b)
 	}
+	b, err := json.Marshal(response)
+	if err != nil {
+		log.Println("error marshalling json: " + err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	w.Write(b)
 }

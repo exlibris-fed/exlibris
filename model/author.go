@@ -11,5 +11,5 @@ func init() {
 // An Author is someone who has written a Book.
 type Author struct {
 	gorm.Model
-	Name string
+	Name string `json:"name"`
 }
