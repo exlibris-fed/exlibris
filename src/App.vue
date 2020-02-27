@@ -5,7 +5,7 @@
       <img src="../public/greek-column.svg" alt="greek pillar" height="50" width="50" />
     </div>
     <div id="seachbar">
-      <SearchBar></SearchBar>
+      <SearchBar @termChange="onTermChange"></SearchBar>
     </div>
     <div id="content">
       <h1>Discover</h1>
@@ -20,6 +20,11 @@ export default {
   name:'App',
   components: {
     SearchBar
+  },
+  methods: { 	
+    onTermChange(searchTerm) {
+      console.log(searchTerm)
+    }
   }
 }
 </script>
