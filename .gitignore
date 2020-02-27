@@ -2,3 +2,5 @@ db.env
 app.env
 kafka.env
 exlibris
+*/*.DS_Store
+node_modules

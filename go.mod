@@ -1,6 +1,6 @@
 module github.com/exlibris-fed/exlibris
 
-go 1.14
+go 1.12
 
 require (
 	github.com/go-fed/activity v0.4.1-0.20200204213352-de06e3ccdc3e

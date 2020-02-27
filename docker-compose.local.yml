@@ -1,19 +1,5 @@
 version: "3"
 services:
-  app:
-    depends_on:
-      - db
-      - kafka
-      - zookeeper
-    build:
-      context: .
-      dockerfile: Dockerfile
-    ports:
-      - 8080:8080
-    restart: always
-    env_file:
-      - app.env
-
   db:
     image: postgres
     env_file:
@@ -28,14 +14,13 @@ services:
     ports:
       - 9092:9092
     environment:
-      KAFKA_ADVERTISED_HOST_NAME: "kafka"
+      KAFKA_ADVERTISED_HOST_NAME: "localhost"
       KAFKA_ADVERTISED_PORT: 9092
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
       KAFKA_CREATE_TOPICS: "exlibris:3:1"
       KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
     depends_on:
       - zookeeper
-
 
   zookeeper:
     image: wurstmeister/zookeeper
