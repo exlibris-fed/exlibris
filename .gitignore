@@ -1,1 +1,4 @@
 db.env
+app.env
+kafka.env
+exlibris
