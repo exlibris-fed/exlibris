@@ -131,7 +131,7 @@ func (ap *ActivityPub) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	// TODO how to determine if logged in?
 	log.Println("AuthenticateGetInbox")
-	return c, false
+	return c, false, nil
 }
 
 // AuthenticateGetOutbox delegates the authentication of a GET to an
