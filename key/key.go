@@ -4,49 +4,49 @@
 package key
 
 import (
-    "crypto"
-    "crypto/x509"
-    "encoding/pem"
-    "crypto/rand"
-    "crypto/rsa"
+	"crypto"
+	"crypto/rand"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 )
 
 const (
-    // KeySize is the size of the keypair to use.
-    KeySize = 1024
+	// KeySize is the size of the keypair to use.
+	KeySize = 1024
 )
 
 // New creates an RSA private key with the default size.
 func New() (k *rsa.PrivateKey, err error) {
-    k, err = rsa.GenerateKey(rand.Reader, KeySize)
-    return
+	k, err = rsa.GenerateKey(rand.Reader, KeySize)
+	return
 }
 
 // NewOfSIze creates an RSA private key of a specified size.
 func NewOfSize(n int) (k *rsa.PrivateKey, err error) {
-    k, err = rsa.GenerateKey(rand.Reader, n)
-    return
+	k, err = rsa.GenerateKey(rand.Reader, n)
+	return
 }
 
 // MarshalPublicKey takes a public key and returns its string representation.
 func MarshalPublicKey(p crypto.PublicKey) (string, error) {
-    pkix, err := x509.MarshalPKIXPublicKey(p)
-    if err != nil {
-        return "", err
-    }
-    pb := pem.EncodeToMemory(&pem.Block{
-        Type:  "PUBLIC KEY",
-        Bytes: pkix,
-    })
-    return string(pb), nil
+	pkix, err := x509.MarshalPKIXPublicKey(p)
+	if err != nil {
+		return "", err
+	}
+	pb := pem.EncodeToMemory(&pem.Block{
+		Type:  "PUBLIC KEY",
+		Bytes: pkix,
+	})
+	return string(pb), nil
 }
 
 // SerializeRSAPrivateKey takes a private key and returns its byte representation.
 func SerializeRSAPrivateKey(k *rsa.PrivateKey) ([]byte, error) {
-    return x509.MarshalPKCS8PrivateKey(k)
+	return x509.MarshalPKCS8PrivateKey(k)
 }
 
 // DeserializeRSAPrivateKey takes byte representation of a private key and returns its PrivateKey representation.
 func DeserializeRSAPrivateKey(b []byte) (crypto.PrivateKey, error) {
-    return x509.ParsePKCS8PrivateKey(b)
+	return x509.ParsePKCS8PrivateKey(b)
 }

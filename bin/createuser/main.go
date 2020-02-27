@@ -22,6 +22,11 @@ func main() {
 		DisplayName: os.Args[2],
 	}
 	u.SetPassword(os.Args[3])
+	err := u.GenerateKeys()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
 
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
