@@ -2,7 +2,11 @@
 package database
 
 import (
+    "context"
+    "net/url"
+
     "github.com/jinzhu/gorm"
+    "github.com/go-fed/activity/streams/vocab"
 )
 
 // A Database is a connection to a database. It currently uses the gorm connection, which we may want to revisit later?
