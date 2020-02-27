@@ -1,27 +1,48 @@
 <template>
   <div id="app">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
+    <div id="title">
+      <h1>Ex-Libris</h1>
+      <img src="../public/greek-column.svg" alt="greek pillar" height="50" width="50" />
+    </div>
+    <div id="seachbar">
+      <SearchBar></SearchBar>
+    </div>
+    <div id="content">
+      <h1>Discover</h1>
+    </div>
   </div>
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import SearchBar from './components/SearchBar.vue';
 
 export default {
-  name: 'App',
+  name:'App',
   components: {
-    HelloWorld
+    SearchBar
   }
 }
 </script>
 
 <style>
-#app {
-  font-family: Avenir, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+#title {
+	margin: 20px;
+	display: flex;
+	justify-content: center;
 }
+
+#seachbar {
+  display: flex;
+  justify-content: center;
+}
+
+h1 {
+  margin: 5px;
+  font-family: 'Literata'; 
+}
+
+img {
+  margin: 5px;
+}
+
 </style>
