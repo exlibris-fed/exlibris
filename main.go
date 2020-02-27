@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/exlibris-fed/exlibris/activitypub"
+	"github.com/exlibris-fed/exlibris/handler"
 	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/gorilla/mux"
@@ -23,12 +24,15 @@ func main() {
 	defer db.Close()
 
 	model.ApplyMigrations(db)
-
 	ap := activitypub.New(db)
+	h := handler.New(db)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/{username}/inbox", ap.HandleInbox)
-	r.HandleFunc("/{username}/outbox", ap.HandleOutbox)
+	r.HandleFunc("/book", h.SearchBooks)
+	r.HandleFunc("/user/{username}/inbox", ap.HandleInbox)
+	r.HandleFunc("/user/{username}/outbox", ap.HandleOutbox)
+	r.HandleFunc("/@{username}/inbox", ap.HandleInbox)
+	r.HandleFunc("/@{username}/outbox", ap.HandleOutbox)
 
 	server := &http.Server{
 		Handler:      r,
