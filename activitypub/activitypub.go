@@ -7,9 +7,16 @@ import (
 
     "github.com/exlibris-fed/exlibris/activitypub/clock"
     "github.com/exlibris-fed/exlibris/activitypub/database"
+    "github.com/exlibris-fed/exlibris/key"
 
     "github.com/go-fed/activity/pub"
+    "github.com/go-fed/httpsig"
     "github.com/jinzhu/gorm"
+)
+
+const (
+    // UserAgentString is used to identify exlibris in http requests.
+    UserAgentString = "exlibris-fed" // TODO version number
 )
 
 type ActivityPub struct {
@@ -123,6 +130,34 @@ func (ap *ActivityPub) GetOutbox(c context.Context, r *http.Request) (vocab.Acti
 // returned Transport so that any private credentials are able to be
 // garbage collected.
 func (ap *ActivityPub) NewTransport(c context.Context, actorBoxIRI *url.URL, gofedAgent string) (t Transport, err error) {
-    // TODO
+    // TODO don't use the default implementation
+
+    // TODO get user's PK instead of making a new one each time, jfc
+    pk, err := key.New()
+    if err != nil {
+        log.Println("error generating key: " + err.Error())
+    }
+
+    t = pub.NewHttpSigTransport(
+        http.Client{},
+        gofedAgent + "/" + UserAgentString,
+        ap.clock,
+        ap.signer([]string{}), // TODO headers
+        ap.signer([]string{}), // TODO headers
+        pk,
+    )
     return
+}
+
+func (ap *ActivityPub) signer(headers []string) httpsig.Signer {
+    signer, _, err := httpsig.NewSigner(
+        []httpsig.Algorithm{httpsig.RSA_SHA256},
+        httpsig.DigestSha256,
+        headers,
+        httpsig.Authorization,
+    )
+    if err != nil {
+        log.Println("error creating signer: " + err.Error())
+    }
+    return signer
 }
