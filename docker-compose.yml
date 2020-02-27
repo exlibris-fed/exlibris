@@ -5,9 +5,7 @@ services:
       - db
       - kafka
       - zookeeper
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: exlibris:latest
     ports:
       - 8080:8080
     restart: always
