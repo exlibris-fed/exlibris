@@ -19,7 +19,14 @@ import (
 )
 
 func main() {
-
+	host := os.Getenv("APP_HOST")
+	if host == "" {
+		log.Fatalf("APP_HOST not provided")
+	}
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		log.Fatalf("APP_PORT not provided")
+	}
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatalf("unable to connect to database: %s", err)
@@ -38,7 +45,7 @@ func main() {
 	r.HandleFunc("/@{username}/outbox", ap.HandleOutbox)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 
-	addr := net.JoinHostPort(os.Getenv("APP_HOST"), os.Getenv("APP_PORT"))
+	addr := net.JoinHostPort(host, port)
 	log.Println("Starting on ", addr)
 
 	server := &http.Server{
