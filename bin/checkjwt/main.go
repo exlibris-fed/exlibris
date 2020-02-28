@@ -12,8 +12,8 @@ import (
 )
 
 func main() {
-	if len(os.Args) != 2 {
-		fmt.Println("usage: go run .  jwt")
+	if len(os.Args) != 3 {
+		fmt.Println("usage: go run . user jwt")
 		os.Exit(1)
 	}
 
@@ -26,5 +26,7 @@ func main() {
 	}
 	defer db.Close()
 
-	fmt.Println(u.ValidateJWT(os.Args[1]))
+	db.First(&u, "username = ?", os.Args[1])
+
+	fmt.Println(u.ValidateJWT(os.Args[2]))
 }
