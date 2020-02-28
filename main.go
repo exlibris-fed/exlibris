@@ -18,13 +18,13 @@ import (
 )
 
 func main() {
-	host := os.Getenv("APP_HOST")
+	host := os.Getenv("HOST")
 	if host == "" {
-		log.Fatalf("APP_HOST not provided")
+		log.Fatalf("HOST not provided")
 	}
-	port := os.Getenv("APP_PORT")
+	port := os.Getenv("PORT")
 	if port == "" {
-		log.Fatalf("APP_PORT not provided")
+		log.Fatalf("PORT not provided")
 	}
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
