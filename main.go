@@ -36,6 +36,7 @@ func main() {
 	h := handler.New(db)
 
 	r := mux.NewRouter()
+	r.HandleFunc("/register", h.Register)
 	r.HandleFunc("/book", h.SearchBooks)
 	r.HandleFunc("/user/{username}/inbox", h.HandleInbox)
 	r.HandleFunc("/user/{username}/outbox", h.HandleOutbox)

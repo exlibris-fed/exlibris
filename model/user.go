@@ -33,6 +33,7 @@ type User struct {
 	gorm.Model
 	Username         string            `gorm:"unique;not null;index"`
 	DisplayName      string            `gorm:"not null"`
+	Email            string            `gorm:"not null"`
 	Password         []byte            `gorm:"not null" json:"-"`
 	PrivateKey       []byte            `gorm:"not null" json:"-"`
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
