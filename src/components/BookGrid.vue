@@ -1,12 +1,14 @@
 <template>
-  <ul>
-    <BookGridCard 
-      v-for="book in books" 
-      :key="book.id"
-      v-bind:book="book"
-    >
-    </BookGridCard>
-  </ul>
+  <div class="container-fluid">
+    <div id="grid-wrapper" class="row row-cols-4">
+      <BookGridCard 
+        v-for="book in books" 
+        :key="book.title"
+        :book="book"
+      >
+      </BookGridCard>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -22,8 +24,21 @@ export default {
 </script>
 
 <style>
-BookGridCard {
-  display: inline-grid;
+
+#grid-wrapper {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
 }
+
+BookGridCard {
+  margin: 5px;
+}
+
+BookGridCard:hover {
+  -webkit-filter: drop-shadow(0 20px 20px  rgba(0, 0, 0, 0.70));
+  filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.70));
+}
+
 </style>
  

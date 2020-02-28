@@ -8,7 +8,7 @@
       <SearchBar @termChange="onTermChange"></SearchBar>
     </div>
     <div id="discover">
-      <h1>Discover</h1>
+      <h1>The Reading List...</h1>
     </div>
     <div id="bookgrid-container">
     <BookGrid :books="books"></BookGrid>
@@ -32,12 +32,12 @@ export default {
   },
   methods: { 	
     onTermChange(searchTerm) {
-      axios.get('http://openlibrary.org/search.json?', {
+      axios.get('http://localhost:8081/book', {
         params: {
-          q: searchTerm
+          title: searchTerm
         }
       }).then(response => { 
-          this.books = response.data.docs;
+          this.books = response.data;
       });
     }
   }
@@ -57,9 +57,7 @@ export default {
 }
 
 BookGird {
-  display: inline-grid;
-  grid-template-columns: 100px 100px 100px 100px;
-  grid-template-rows: auto;
+  display: grid;
 }
 
 h1 {

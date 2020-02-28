@@ -7,10 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/exlibris-fed/exlibris/activitypub"
-	"github.com/exlibris-fed/exlibris/model"
-
 	"github.com/dgrijalva/jwt-go"
+	"github.com/exlibris-fed/exlibris/activitypub"
+	"github.com/exlibris-fed/exlibris/dto"
+	"github.com/exlibris-fed/exlibris/model"
 	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
@@ -116,18 +116,22 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
-	var response []model.Book
+	var response []dto.Book
 	for _, book := range books {
-		b := model.Book{
-			Key:       book.Key,
+		b := dto.Book{
 			Title:     book.Title,
-			Authors:   []model.Author{},
+			Authors:   []string{},
 			Published: book.FirstPublishYear,
 			//ISBN:      book.ISBN, // need to dedupe
 			Subjects: book.Subject,
+			Covers: map[string]string{
+				"small":  book.CoverURL(openlibrary.SizeSmall),
+				"medium": book.CoverURL(openlibrary.SizeMedium),
+				"large":  book.CoverURL(openlibrary.SizeLarge),
+			},
 		}
 		for _, a := range book.AuthorName {
-			b.Authors = append(b.Authors, model.Author{Name: a})
+			b.Authors = append(b.Authors, a)
 		}
 		response = append(response, b)
 	}

@@ -17,7 +17,7 @@ export default {
 
 <style>
 input {
-  font-size: 15px;
+  text-align: center;
   transition: .5s ease-in-out;
 }
 

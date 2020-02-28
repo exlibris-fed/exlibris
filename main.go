@@ -47,7 +47,7 @@ func main() {
 	log.Println("Starting on ", addr)
 
 	server := &http.Server{
-		Handler:      loggedRouter,
+		Handler:      handlers.CORS()(loggedRouter),
 		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
