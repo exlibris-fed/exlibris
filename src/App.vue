@@ -32,12 +32,12 @@ export default {
   },
   methods: { 	
     onTermChange(searchTerm) {
-      axios.get('http://openlibrary.org/search.json?', {
+      axios.get('http://localhost:8081/book', {
         params: {
-          q: searchTerm
+          title: searchTerm
         }
       }).then(response => { 
-          this.books = response.data.docs;
+          this.books = response.data;
       });
     }
   }

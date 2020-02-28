@@ -5,7 +5,7 @@ services:
       - db
     image: exlibris:latest
     ports:
-      - 8080:8080
+      - 8081:8080
     env_file:
       - app.env
 
