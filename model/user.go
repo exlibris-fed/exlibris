@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/key"
 
@@ -82,7 +83,8 @@ func (u *User) ensureCryptoPrivateKey() {
 func (u *User) GenerateJWT() (string, error) {
 	u.ensureCryptoPrivateKey()
 	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"kid": u.Username, // TODO should we be generating urls as an ID?
+		"kid":       u.Username, // TODO should we be generating urls as an ID?
+		"generated": time.Now().String(),
 	})
 	t, err := token.SignedString(u.CryptoPrivateKey)
 	if err != nil {
@@ -96,6 +98,7 @@ func (u *User) ValidateJWT(t string) bool {
 	u.ensureCryptoPrivateKey()
 	if u.CryptoPrivateKey == nil {
 		// this may not be a user persisted in the database
+		log.Println("user doesnt have a key")
 		return false
 	}
 
