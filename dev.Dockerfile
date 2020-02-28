@@ -13,4 +13,4 @@ RUN go get
 RUN go get github.com/githubnemo/CompileDaemon
 CMD ["CompileDaemon", "-build=go build -o app", "-directory=/build", "-command=/build/app"]
 
-EXPOSE 8000
+EXPOSE 8080

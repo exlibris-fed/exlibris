@@ -13,6 +13,7 @@ import (
 	"github.com/exlibris-fed/exlibris/model"
 	"github.com/jinzhu/gorm"
 
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
@@ -35,11 +36,13 @@ func main() {
 	r.HandleFunc("/user/{username}/outbox", ap.HandleOutbox)
 	r.HandleFunc("/@{username}/inbox", ap.HandleInbox)
 	r.HandleFunc("/@{username}/outbox", ap.HandleOutbox)
+	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 
 	addr := net.JoinHostPort(os.Getenv("APP_HOST"), os.Getenv("APP_PORT"))
+	log.Println("Starting on ", addr)
 
 	server := &http.Server{
-		Handler:      r,
+		Handler:      loggedRouter,
 		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
