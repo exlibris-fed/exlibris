@@ -13,10 +13,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-func init() {
-	registerModel(new(User))
-}
-
 const (
 	// ContextKeyRequestedUser  is the key to use for the username of the endpoint being requested.
 	ContextKeyRequestedUser ContextKey = "username"

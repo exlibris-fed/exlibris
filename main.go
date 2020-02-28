@@ -32,7 +32,13 @@ func main() {
 	}
 	defer db.Close()
 
-	model.ApplyMigrations(db)
+	db.AutoMigrate(model.Author{})
+	db.AutoMigrate(model.Book{})
+	db.AutoMigrate(model.BookAuthor{})
+	db.AutoMigrate(model.Read{})
+	db.AutoMigrate(model.Review{})
+	db.AutoMigrate(model.User{})
+
 	h := handler.New(db)
 
 	r := mux.NewRouter()
