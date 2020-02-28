@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"time"
@@ -10,13 +11,22 @@ import (
 	"github.com/exlibris-fed/exlibris/activitypub"
 	"github.com/exlibris-fed/exlibris/handler"
 	"github.com/exlibris-fed/exlibris/model"
-
-	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
+
+	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
+	host := os.Getenv("APP_HOST")
+	if host == "" {
+		log.Fatalf("APP_HOST not provided")
+	}
+	port := os.Getenv("APP_PORT")
+	if port == "" {
+		log.Fatalf("APP_PORT not provided")
+	}
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatalf("unable to connect to database: %s", err)
@@ -33,10 +43,14 @@ func main() {
 	r.HandleFunc("/user/{username}/outbox", ap.HandleOutbox)
 	r.HandleFunc("/@{username}/inbox", ap.HandleInbox)
 	r.HandleFunc("/@{username}/outbox", ap.HandleOutbox)
+	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
+
+	addr := net.JoinHostPort(host, port)
+	log.Println("Starting on ", addr)
 
 	server := &http.Server{
-		Handler:      r,
-		Addr:         "127.0.0.1:8080", // TODO config it somewhere?
+		Handler:      loggedRouter,
+		Addr:         addr,
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}

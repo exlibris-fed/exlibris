@@ -9,13 +9,13 @@ import (
 	"github.com/exlibris-fed/exlibris/activitypub/clock"
 	"github.com/exlibris-fed/exlibris/activitypub/database"
 	"github.com/exlibris-fed/exlibris/key"
+	"github.com/jinzhu/gorm"
 
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/go-fed/httpsig"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 )
 
 const (
