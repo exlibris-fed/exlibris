@@ -15,37 +15,24 @@ import (
 
 // GetReads returns a list of books you've read
 func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
-	title := r.FormValue("title")
-	if title == "" {
-		w.WriteHeader(http.StatusBadRequest)
+	c := h.contextFromRequest(r)
+	userctx := c.Value(model.ContextKeyAuthenticatedUser)
+	if userctx == nil {
+		log.Println("User is nil")
+		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	books, err := openlibrary.TitleSearch(title)
-	if err != nil {
-		log.Println("error searching for titles: " + err.Error())
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-	var response []dto.Book
-	for _, book := range books {
-		b := dto.Book{
-			ID:        book.Key,
-			Title:     book.Title,
-			Authors:   []string{},
-			Published: book.FirstPublishYear,
-			//ISBN:      book.ISBN, // need to dedupe
-			Subjects: book.Subject,
-			Covers: map[string]string{
-				"small":  book.CoverURL(openlibrary.SizeSmall),
-				"medium": book.CoverURL(openlibrary.SizeMedium),
-				"large":  book.CoverURL(openlibrary.SizeLarge),
-			},
-		}
-		for _, a := range book.AuthorName {
-			b.Authors = append(b.Authors, a)
-		}
-		response = append(response, b)
+	user := userctx.(model.User)
+	reads := []model.Read{}
+	response := []dto.Book{}
+	h.db.Where("fk_user = ?", user.ID).Find(&reads)
+	for _, read := range reads {
+		log.Println(read.FKBook)
+		book := model.Book{}
+		h.db.Where("key = ?", fmt.Sprintf("/works/%s",read.FKBook)).First(&book)
+		spew.Dump(book)
+		response = append(response, dto.Book{ID: book.Key,Title: book.Title})
 	}
 	b, err := json.Marshal(response)
 	if err != nil {
@@ -63,28 +50,34 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 	userctx := c.Value(model.ContextKeyAuthenticatedUser)
 	if userctx == nil {
 		log.Println("User is nil")
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
-	user := userctx.(model.User)
 
-	log.Println(user.Username)
-	log.Println(id)
+	user := userctx.(model.User)
 	book := model.Book{}
-	h.db.Where("key = ?", fmt.Sprintf("works/%s",id)).First(&book)
-	log.Println(book.Key)
+	h.db.Where("key = ?", fmt.Sprintf("/works/%s",id)).First(&book)
 	if book.Key == "" {
 		// fetch book from API
 		work, err := openlibrary.GetWorkByID(id)
 		if err != nil {
 			log.Println("Could not fetch work", id, "got error", err)
+			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
 		book := model.NewBook(work.Key, work.Title, 0, "")
 		result := h.db.Create(book)
 		if result.Error != nil {
-			spew.Dump(result.Error)
+			log.Println("Could not insert book into DB")
+			w.WriteHeader(http.StatusConflict)
+			return
 		}
-	} else {
-		log.Println("Book found")
 	}
-	spew.Dump(book)
+
+	read := model.Read{
+		FKUser: user.ID,
+		FKBook: id,
+	}
+	h.db.Create(&read)
+	w.WriteHeader(http.StatusCreated)
 }
