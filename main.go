@@ -60,7 +60,7 @@ func main() {
 	loggedRouter := handlers.LoggingHandler(os.Stdout,
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"}),
-			handlers.AllowedOrigins([]string{"*"}),
+			handlers.AllowedOrigins([]string{"http://localhost:8080", "https://"+os.Getenv("DOMAIN")}),
 		)(r),
 	)
 
