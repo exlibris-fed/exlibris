@@ -1,7 +1,6 @@
 package main
 
 import (
-	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -11,6 +10,7 @@ import (
 
 	"github.com/exlibris-fed/exlibris/activitypub"
 	"github.com/exlibris-fed/exlibris/handler"
+	"github.com/exlibris-fed/exlibris/model"
 	"github.com/jinzhu/gorm"
 
 	"github.com/gorilla/mux"
@@ -18,20 +18,14 @@ import (
 )
 
 func main() {
-	conn, err := sql.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
+
+	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
-		log.Fatal(err)
+		log.Fatalf("unable to connect to database: %s", err)
 	}
+	defer db.Close()
 
-	if err = conn.Ping(); err != nil {
-		log.Fatalf("Could not ping: %s", err)
-	}
-
-	db, err := gorm.Open("postgres", conn)
-	if err != nil {
-		log.Fatal(err)
-	}
-
+	model.ApplyMigrations(db)
 	ap := activitypub.New(db)
 	h := handler.New(db)
 
