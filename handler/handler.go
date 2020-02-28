@@ -51,14 +51,11 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user := model.User{
-		Username:    request.Username,
-		DisplayName: request.DisplayName,
-		Email:       request.Email,
+	user, err := model.NewUser(request.Username, request.DisplayName, request.Email, request.Password)
+	if err != nil {
+		log.Println("error creating user object: " + err.Error())
 	}
-	user.SetPassword(request.Password)
-	user.GenerateKeys()
-	result := h.db.Create(&user)
+	result := h.db.Create(user)
 
 	if result.Error != nil {
 		// I'd like this to be a constant in a db package somewhere
@@ -141,6 +138,9 @@ func (h *Handler) contextFromRequest(r *http.Request) context.Context {
 	}
 	c = context.WithValue(c, model.ContextKeyRequestedUser, username)
 	return c
+}
+
+func (h *Handler) FederationTest(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleInbox is the http handler for an ActivityPub user's inbox.

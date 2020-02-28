@@ -32,7 +32,7 @@ export default {
   },
   methods: { 	
     onTermChange(searchTerm) {
-      axios.get('http://localhost:8081/book', {
+      axios.get('https://exlibris-fed.herokuapp.com/book', {
         params: {
           title: searchTerm
         }
