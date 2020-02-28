@@ -18,7 +18,6 @@ import (
 )
 
 func main() {
-	fmt.Println(os.Getenv("POSTGRES_CONNECTION"))
 	conn, err := sql.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatal(err)
