@@ -31,38 +31,47 @@ func New(db *gorm.DB) *Handler {
 	}
 }
 
+func (h *Handler) contextFromRequest(r *http.Request) context.Context {
+	vars := mux.Vars(r)
+
+	token := jwtFromAuth(r.Header.Get("Authorization"))
+	c := context.WithValue(context.Background(), model.ContextKeyJWT, token)
+
+	var user model.User
+	h.db.First(&user, "username = ?", kidFromJWT(r.Header.Get("Authorization")))
+	if len(user.PrivateKey) > 0 && user.ValidateJWT(token) {
+		c = context.WithValue(c, model.ContextKeyAuthenticatedUser, user)
+	}
+
+	username, ok := vars["username"]
+	if !ok {
+		return c
+	}
+	c = context.WithValue(c, model.ContextKeyRequestedUser, username)
+	return c
+}
+
 // HandleInbox is the http handler for an ActivityPub user's inbox.
 func (h *Handler) HandleInbox(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handlin inbox")
 	actor := h.ap.NewFederatingActor()
 
-	vars := mux.Vars(r)
-	username, ok := vars["username"]
-	if !ok {
-		// how did this happen? I almost want to make it a 500
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	var user model.User
-	h.db.First(&user, "username = ?", username)
-	c := context.WithValue(context.Background(), model.ContextKeyUser, user)
-	c = context.WithValue(c, model.ContextKeyJWT, jwtFromAuth(r.Header.Get("Authorization")))
+	c := h.contextFromRequest(r)
 
 	if handled, err := actor.PostInbox(c, w, r); err != nil {
-		log.Printf("error handling PostInbox for user %s: %s", username, err)
+		log.Printf("error handling PostInbox: %s", err)
 		w.WriteHeader(http.StatusInternalServerError) // TODO
 		return
 	} else if handled {
-		log.Printf("handled PostInbox for user %s", username)
+		log.Println("handled PostInbox")
 		return
 	} else if handled, err = actor.GetInbox(c, w, r); err != nil {
-		log.Printf("error handling GetInbox for user %s: %s", username, err)
+		log.Printf("error handling GetInbox: %s", err)
 		w.WriteHeader(http.StatusInternalServerError) // TODO
 		// Write to w
 		return
 	} else if handled {
-		log.Printf("handled GetInbox for user %s", username)
+		log.Println("handled GetInbox")
 		return
 	}
 	log.Println("else...?")
@@ -75,8 +84,8 @@ func (h *Handler) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handlin outbox")
 	actor := h.ap.NewFederatingActor()
 
-	// TODO
-	c := context.Background()
+	c := h.contextFromRequest(r)
+
 	// Populate c with request-specific information
 	if handled, err := actor.PostOutbox(c, w, r); err != nil {
 		// Write to w

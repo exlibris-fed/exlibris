@@ -18,8 +18,11 @@ func init() {
 }
 
 const (
-	// ContextKeyUser is the key to use for User objects in a context
-	ContextKeyUser ContextKey = "user"
+	// ContextKeyRequestedUser  is the key to use for the username of the endpoint being requested.
+	ContextKeyRequestedUser ContextKey = "username"
+
+	// ContextKeyAuthenticatedUser is the key to use for a User object that was retrieved from a JWT. It should not be set until the JWT has been verified as being signed by the user specified in the `kid` field.
+	ContextKeyAuthenticatedUser ContextKey = "authuser"
 
 	// ContextKeyJWT is the key to use for a User's JWT in a context
 	ContextKeyJWT ContextKey = "jwt"

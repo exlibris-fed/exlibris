@@ -66,9 +66,16 @@ func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 // authenticated must be true and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-	jwt := c.Value(model.ContextKeyJWT).(string)
-	user := c.Value(model.ContextKeyUser).(model.User)
-	return c, user.ValidateJWT(jwt), nil
+	authenticatedUser, ok := c.Value(model.ContextKeyAuthenticatedUser).(model.User)
+	if !ok {
+		return c, false, nil
+	}
+
+	requestedUser, ok := c.Value(model.ContextKeyRequestedUser).(string)
+	if !ok {
+		return c, false, nil
+	}
+	return c, authenticatedUser.Username == requestedUser, nil
 }
 
 // AuthenticateGetOutbox delegates the authentication of a GET to an
