@@ -12,3 +12,13 @@ type Book struct {
 	Published int      `json:"published"`
 	ISBN      string   `json:"isbn,omitempty"`
 }
+
+// NewBook returns instance of new book
+func NewBook(key string, title string, published int, isbn string) *Book {
+	return &Book{
+		Key: key,
+		Title: title,
+		Published: published,
+		ISBN: isbn,
+	}
+}

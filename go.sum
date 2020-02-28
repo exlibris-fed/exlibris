@@ -1,4 +1,6 @@
 github.com/dave/jennifer v1.3.0/go.mod h1:fIb+770HOpJ2fmN9EPPKOqm1vMGhB+TwXKMZhrIygKg=
+github.com/davecgh/go-spew v1.1.1 h1:vj9j/u1bqnvCEfJOwUhtlOARqs3+rkHYY13jYWTU97c=
+github.com/davecgh/go-spew v1.1.1/go.mod h1:J7Y8YcW2NihsgmVo/mv3lAwl/skON4iLHjSsI+c5H38=
 github.com/denisenkom/go-mssqldb v0.0.0-20191124224453-732737034ffd h1:83Wprp6ROGeiHFAP8WJdI2RoxALQYgdllERc3N5N2DM=
 github.com/denisenkom/go-mssqldb v0.0.0-20191124224453-732737034ffd/go.mod h1:xbL0rPBG9cCiLr28tMa8zpbdarY27NDyej4t/EjAShU=
 github.com/dgrijalva/jwt-go v1.0.2 h1:KPldsxuKGsS2FPWsNeg9ZO18aCrGKujPoWXn2yo+KQM=
@@ -12,6 +14,10 @@ github.com/exlibris-fed/openlibrary-go v0.1.2 h1:P/mAOxkWMreU3St606c8AgpSHPrJIsP
 github.com/exlibris-fed/openlibrary-go v0.1.2/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/exlibris-fed/openlibrary-go v0.2.0 h1:tNp30zYUiLylz9RDRfc7PPaJQ/O/M9ym5xGtKsLN5qg=
 github.com/exlibris-fed/openlibrary-go v0.2.0/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
+github.com/exlibris-fed/openlibrary-go v0.3.0 h1:HCmmsbSCFda8Iy6c0nd8gKU0R7sHE9CE4+0ZnZ3/224=
+github.com/exlibris-fed/openlibrary-go v0.3.0/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
+github.com/exlibris-fed/openlibrary-go v0.3.3 h1:JjKdQoRJpbvamR4adI7L6M6ta1Jtve9IaPTj07IYVBU=
+github.com/exlibris-fed/openlibrary-go v0.3.3/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/go-fed/activity v0.4.1-0.20200204213352-de06e3ccdc3e h1:zErlpSpHi/lEFv6gAVtxZ18cOuA+F8DbSHBVpvIcfS4=
 github.com/go-fed/activity v0.4.1-0.20200204213352-de06e3ccdc3e/go.mod h1:v4QoPaAzjWZ8zN2VFVGL5ep9C02mst0hQYHUpQwso4Q=
 github.com/go-fed/httpsig v0.1.1-0.20190914113940-c2de3672e5b5 h1:WLvFZqoXnuVTBKA6U/1FnEHNQ0Rq0QM0rGhY8Tx6R1g=

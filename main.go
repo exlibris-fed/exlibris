@@ -50,6 +50,7 @@ func main() {
 	r.HandleFunc("/register", h.Register).Methods(http.MethodPost)
 	r.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost)
 	r.HandleFunc("/book", h.SearchBooks)
+	r.HandleFunc("/book/{book}/read", h.Read).Methods(http.MethodPost)
 	r.HandleFunc("/user/{username}/inbox", h.HandleInbox)
 	r.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
 	r.HandleFunc("/@{username}/inbox", h.HandleInbox)

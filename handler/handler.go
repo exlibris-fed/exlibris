@@ -212,6 +212,7 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 	var response []dto.Book
 	for _, book := range books {
 		b := dto.Book{
+			ID: book.Key,
 			Title:     book.Title,
 			Authors:   []string{},
 			Published: book.FirstPublishYear,
