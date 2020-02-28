@@ -26,13 +26,24 @@ func main() {
 	if port == "" {
 		log.Fatalf("PORT not provided")
 	}
+	if os.Getenv("DOMAIN") == "" {
+		log.Fatalf("DOMAIN not provided")
+	}
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatalf("unable to connect to database: %s", err)
 	}
 	defer db.Close()
 
-	model.ApplyMigrations(db)
+	db.AutoMigrate(model.Author{})
+	db.AutoMigrate(model.Book{})
+	db.AutoMigrate(model.BookAuthor{})
+	db.AutoMigrate(model.BookSubject{})
+	db.AutoMigrate(model.Read{})
+	db.AutoMigrate(model.Review{})
+	db.AutoMigrate(model.Subject{})
+	db.AutoMigrate(model.User{})
+
 	h := handler.New(db)
 
 	r := mux.NewRouter()
@@ -43,6 +54,7 @@ func main() {
 	r.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
 	r.HandleFunc("/@{username}/inbox", h.HandleInbox)
 	r.HandleFunc("/@{username}/outbox", h.HandleOutbox)
+	r.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost)
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 
 	addr := net.JoinHostPort(host, port)
