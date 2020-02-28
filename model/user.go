@@ -5,11 +5,12 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"log"
+	"os"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/key"
 
 	"github.com/dgrijalva/jwt-go"
-	"github.com/jinzhu/gorm"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -30,13 +31,34 @@ const (
 
 // A User is a person interacting with the app. They may not be registered on this server.
 type User struct {
-	gorm.Model
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+	DeletedAt        *time.Time        `sql:"index"`
+	ID               string            `gorm:"primary_key"`
 	Username         string            `gorm:"unique;not null;index"`
 	DisplayName      string            `gorm:"not null"`
 	Email            string            `gorm:"not null"`
 	Password         []byte            `gorm:"not null" json:"-"`
 	PrivateKey       []byte            `gorm:"not null" json:"-"`
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
+}
+
+// NewUser creates a user and handles generating the ID, key and hashed password.
+func NewUser(username, password, email, displayName string) (*User, error) {
+	domain := os.Getenv("DOMAIN")
+	if domain == "" {
+		return nil, fmt.Errorf("DOMAIN env variable not set")
+	}
+
+	u := User{
+		ID:          fmt.Sprintf("%s/@%s", domain, username),
+		Username:    username,
+		Email:       email,
+		DisplayName: displayName,
+	}
+	u.SetPassword(password)
+	u.GenerateKeys()
+	return &u, nil
 }
 
 // SetPassword is used to hash the password the user wishes to use.
