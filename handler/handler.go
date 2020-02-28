@@ -51,7 +51,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := model.NewUser(request.Username, request.DisplayName, request.Email, request.Password)
+	user, err := model.NewUser(request.Username, request.Password, request.Email, request.DisplayName)
 	if err != nil {
 		log.Println("error creating user object: " + err.Error())
 	}
