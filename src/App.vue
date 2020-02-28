@@ -8,7 +8,7 @@
       <SearchBar @termChange="onTermChange"></SearchBar>
     </div>
     <div id="discover">
-      <h1>Discover</h1>
+      <h1>The Reading List...</h1>
     </div>
     <div id="bookgrid-container">
     <BookGrid :books="books"></BookGrid>
@@ -57,9 +57,7 @@ export default {
 }
 
 BookGird {
-  display: inline-grid;
-  grid-template-columns: 100px 100px 100px 100px;
-  grid-template-rows: auto;
+  display: grid;
 }
 
 h1 {
