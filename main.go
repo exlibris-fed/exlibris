@@ -61,6 +61,7 @@ func main() {
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"}),
 			handlers.AllowedOrigins([]string{"http://localhost:8080", "https://"+os.Getenv("DOMAIN")}),
+			handlers.AllowCredentials(),
 		)(r),
 	)
 
