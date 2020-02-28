@@ -17,6 +17,14 @@ func init() {
 	registerModel(new(User))
 }
 
+const (
+	// ContextKeyUser is the key to use for User objects in a context
+	ContextKeyUser ContextKey = "user"
+
+	// ContextKeyJWT is the key to use for a User's JWT in a context
+	ContextKeyJWT ContextKey = "jwt"
+)
+
 // A User is a person interacting with the app. They may not be registered on this server.
 type User struct {
 	gorm.Model
@@ -82,6 +90,11 @@ func (u *User) GenerateJWT() (string, error) {
 // ValidateJWT accepts a JWT and private key and verifies the token was signed by the key.
 func (u *User) ValidateJWT(t string) bool {
 	u.ensureCryptoPrivateKey()
+	if u.CryptoPrivateKey == nil {
+		// this may not be a user persisted in the database
+		return false
+	}
+
 	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
 			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])

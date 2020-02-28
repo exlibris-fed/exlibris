@@ -7,20 +7,14 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/exlibris-fed/exlibris/activitypub"
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/exlibris/model"
+
+	"github.com/dgrijalva/jwt-go"
 	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
-)
-
-type contextKey string
-
-const (
-	keyUsername contextKey = "username"
-	keyUser     contextKey = "user"
 )
 
 // A Handler accepts http requests.
@@ -50,12 +44,10 @@ func (h *Handler) HandleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("un is " + kidFromJWT(r.Header.Get("Authorization")))
-
-	c := context.WithValue(context.Background(), keyUsername, username)
 	var user model.User
 	h.db.First(&user, "username = ?", username)
-	c = context.WithValue(c, keyUser, user)
+	c := context.WithValue(context.Background(), model.ContextKeyUser, user)
+	c = context.WithValue(c, model.ContextKeyJWT, jwtFromAuth(r.Header.Get("Authorization")))
 
 	if handled, err := actor.PostInbox(c, w, r); err != nil {
 		log.Printf("error handling PostInbox for user %s: %s", username, err)
@@ -144,16 +136,19 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
-func kidFromJWT(token string) string {
-	pieces := strings.Split(token, " ")
+func jwtFromAuth(auth string) string {
+	pieces := strings.Split(auth, " ")
 	if len(pieces) != 2 {
 		return ""
 	}
 	if strings.ToLower(pieces[0]) != "bearer" {
 		return ""
 	}
+	return pieces[1]
+}
 
-	segments := strings.Split(pieces[1], ".")
+func kidFromJWT(token string) string {
+	segments := strings.Split(token, ".")
 	if len(segments) != 3 {
 		return ""
 	}

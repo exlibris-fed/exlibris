@@ -2,22 +2,20 @@ package activitypub
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
-	"strings"
 
 	"github.com/exlibris-fed/exlibris/activitypub/clock"
 	"github.com/exlibris-fed/exlibris/activitypub/database"
 	"github.com/exlibris-fed/exlibris/key"
-	"github.com/jinzhu/gorm"
+	"github.com/exlibris-fed/exlibris/model"
 
-	"github.com/dgrijalva/jwt-go"
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/go-fed/httpsig"
+	"github.com/jinzhu/gorm"
 )
 
 const (
@@ -68,19 +66,9 @@ func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 // authenticated must be true and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-	// TODO how to determine if logged in?
-	log.Println("AuthenticateGetInbox")
-	/*
-		t := r.FormValue("Authorization")
-		if t == "" {
-			return c, false, nil
-		}
-		pieces := strings.Split(t, " ")
-		if len(pieces) != 2 {
-			return c, false, nil
-		}
-	*/
-	return c, false, nil
+	jwt := c.Value(model.ContextKeyJWT).(string)
+	user := c.Value(model.ContextKeyUser).(model.User)
+	return c, user.ValidateJWT(jwt), nil
 }
 
 // AuthenticateGetOutbox delegates the authentication of a GET to an
@@ -320,35 +308,4 @@ func (ap *ActivityPub) GetInbox(c context.Context, r *http.Request) (vocab.Activ
 	// TODO
 	log.Println("getting inbox and returning vocab")
 	return streams.NewActivityStreamsOrderedCollectionPage(), nil
-}
-
-// TODO this should be somewhere else
-func (ap *ActivityPub) kidFromJWT(token string) string {
-	pieces := strings.Split(token, " ")
-	if len(pieces) != 2 {
-		return ""
-	}
-	if strings.ToLower(pieces[0]) != "bearer" {
-		return ""
-	}
-
-	segments := strings.Split(pieces[1], ".")
-	if len(segments) != 3 {
-		return ""
-	}
-
-	bytes, err := jwt.DecodeSegment(segments[1])
-	if err != nil {
-		log.Println("error decoding jwt segment: " + err.Error())
-		return ""
-	}
-	var kid struct {
-		ID string `json:"kid"`
-	}
-	err = json.Unmarshal(bytes, &kid)
-	if err != nil {
-		log.Println("error marshalling kid: " + err.Error())
-		return ""
-	}
-	return kid.ID
 }

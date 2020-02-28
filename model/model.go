@@ -5,6 +5,9 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// A ContextKey is a key used to represent a model in a context
+type ContextKey string
+
 var modelList []interface{}
 
 func init() {
