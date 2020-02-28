@@ -6,9 +6,9 @@ import (
 	"net/http"
 
 	"github.com/exlibris-fed/exlibris/model"
+	"github.com/jinzhu/gorm"
 
 	"github.com/exlibris-fed/openlibrary-go"
-	"github.com/jinzhu/gorm"
 )
 
 // A Handler accepts non-ActivityPub http requests. It may be better to move the activitypub handlers here eventually.

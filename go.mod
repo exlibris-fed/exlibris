@@ -9,5 +9,6 @@ require (
 	github.com/go-fed/httpsig v0.1.1-0.20190914113940-c2de3672e5b5
 	github.com/gorilla/mux v1.7.4
 	github.com/jinzhu/gorm v1.9.12
+	github.com/lib/pq v1.3.0 // indirect
 	golang.org/x/crypto v0.0.0-20191205180655-e7c4368fe9dd
 )

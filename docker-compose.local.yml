@@ -8,24 +8,18 @@ services:
       - db-data:/var/lib/postgres/data
     ports:
       - 5432:5432
-
-  kafka:
-    image: wurstmeister/kafka
-    ports:
-      - 9092:9092
-    environment:
-      KAFKA_ADVERTISED_HOST_NAME: "localhost"
-      KAFKA_ADVERTISED_PORT: 9092
-      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      KAFKA_CREATE_TOPICS: "exlibris:3:1"
-      KAFKA_ZOOKEEPER_CONNECT: "zookeeper:2181"
+  app:
     depends_on:
-      - zookeeper
-
-  zookeeper:
-    image: wurstmeister/zookeeper
+      - db
+    build:
+      context: .
+      dockerfile: dev.Dockerfile
     ports:
-      - 2181:2181
+      - 8080:8080
+    env_file:
+        - app.env
+    volumes:
+      - .:/build/
 
 volumes:
   db-data:
