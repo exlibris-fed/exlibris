@@ -38,8 +38,10 @@ func main() {
 	db.AutoMigrate(model.Author{})
 	db.AutoMigrate(model.Book{})
 	db.AutoMigrate(model.BookAuthor{})
+	db.AutoMigrate(model.BookSubject{})
 	db.AutoMigrate(model.Read{})
 	db.AutoMigrate(model.Review{})
+	db.AutoMigrate(model.Subject{})
 	db.AutoMigrate(model.User{})
 
 	h := handler.New(db)
