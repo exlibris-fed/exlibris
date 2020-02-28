@@ -57,13 +57,7 @@ func main() {
 	r.HandleFunc("/@{username}/inbox", h.HandleInbox)
 	r.HandleFunc("/@{username}/outbox", h.HandleOutbox)
 	r.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost)
-	loggedRouter := handlers.LoggingHandler(os.Stdout,
-		handlers.CORS(
-			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"}),
-			handlers.AllowedOrigins([]string{"http://localhost:8080", "https://"+os.Getenv("DOMAIN")}),
-			handlers.AllowCredentials(),
-		)(r),
-	)
+	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 
 	addr := net.JoinHostPort(host, port)
 	log.Println("Starting on ", addr)
