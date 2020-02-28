@@ -34,7 +34,11 @@ func New(db *gorm.DB) *Handler {
 
 // Register will create a user on the server
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
@@ -73,7 +77,11 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 // Authenticate will validate a user's password and, if correct, return a JWT
 func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Access-Control-Allow-Origin", "*")
+	if r.Method == http.MethodOptions {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		w.WriteHeader(http.StatusOK)
+		return
+	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusUnauthorized)
