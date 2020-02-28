@@ -2,9 +2,9 @@
   <div id="container">
     <div class="hello">
         <h1>Login</h1>
-        <input type="text" v-model="input.firstname" placeholder="First Name" />
-        <input type="text" v-model="input.lastname" placeholder="Last Name" />
-        <button v-on:click="sendData()"><router-link to="/home">Send</router-link></button>
+        <input type="text" v-model="username" placeholder="Username" />
+        <input type="password" v-model="password" placeholder="Password" />
+        <button v-on:click="login(username, password)"><router-link to="/home">Send</router-link></button>
         <br />
         <br />
         <div>{{ response }}</div>
@@ -13,35 +13,25 @@
 </template>
 
 <script>
-    export default {
-        name: 'LoginPage',
-        data () {
-            return {
-                ip: "",
-                input: {
-                    firstname: "",
-                    lastname: ""
-                },
-                response: ""
-            }
-        },
-        mounted() {
-            this.$http.get("https://httpbin.org/ip").then(result => {
-                this.ip = result.body.origin;
-            }, error => {
-                console.error(error);
-            });
-        },
-        methods: {
-            sendData() {
-                this.$http.post("https://httpbin.org/post", this.input, { headers: { "content-type": "application/json" } }).then(result => {
-                    this.response = result.data;
-                }, error => {
-                    console.error(error);
-                });
-            }
-        }
-    }
+import axios from "axios";
+
+  export default {
+    name: 'LoginPage',
+    data () {
+      return {
+        firstname: "",
+        lastname: "",
+      }
+    },
+  methods: {
+    login(username, password) {
+      axios.post('https://exlibris-fed.herokuapp.com/authenticate', { 
+        "username": `${username}`,
+        "password": `${password}`
+      }).then(response => console.log(response))
+    }    
+  }
+}
 </script>
 
 <style scoped>

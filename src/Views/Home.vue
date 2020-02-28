@@ -4,7 +4,7 @@
       <SearchBar @termChange="onTermChange"></SearchBar>
     </div>
     <div id="discover">
-      <h1>The Reading List...</h1>
+      <h2>What have you read lately?</h2>
     </div>
     <div id="bookgrid-container">
     <BookGrid :books="books"></BookGrid>
@@ -60,6 +60,12 @@ BookGird {
 h1 {
   margin: 5px;
   font-family: 'Literata'; 
+}
+
+h2 {
+  margin: 5px;
+  font-family: 'Literata';
+  text-align: center; 
 }
 
 img {
