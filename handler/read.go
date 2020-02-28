@@ -44,6 +44,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
+	(*w).Header().Set("Access-Control-Allow-Origin", "*")
 	vars := mux.Vars(r)
 	id := vars["book"]
 	c := h.contextFromRequest(r)
