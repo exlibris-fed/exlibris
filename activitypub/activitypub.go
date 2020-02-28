@@ -2,20 +2,22 @@ package activitypub
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/exlibris-fed/exlibris/activitypub/clock"
 	"github.com/exlibris-fed/exlibris/activitypub/database"
 	"github.com/exlibris-fed/exlibris/key"
 	"github.com/jinzhu/gorm"
 
+	"github.com/dgrijalva/jwt-go"
 	"github.com/go-fed/activity/pub"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/go-fed/httpsig"
-	"github.com/gorilla/mux"
 )
 
 const (
@@ -23,17 +25,13 @@ const (
 	UserAgentString = "exlibris-fed" // TODO version number
 )
 
-type contextKey string
-
-const (
-	keyUsername contextKey = "username"
-)
-
+// ActivityPub represents the federating server connection.
 type ActivityPub struct {
 	db    *database.Database
 	clock *clock.Clock
 }
 
+// New returns a new ActiityPub object.
 func New(db *gorm.DB) *ActivityPub {
 	return &ActivityPub{
 		db:    database.New(db),
@@ -41,72 +39,13 @@ func New(db *gorm.DB) *ActivityPub {
 	}
 }
 
-func (ap *ActivityPub) HandleInbox(w http.ResponseWriter, r *http.Request) {
-	log.Printf("handlin inbox")
-	actor := pub.NewFederatingActor(
+func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
+	return pub.NewFederatingActor(
 		ap,       // common
 		ap,       // federating
 		ap.db,    // database
 		ap.clock, // clock
 	)
-
-	vars := mux.Vars(r)
-	username, ok := vars["username"]
-	if !ok {
-		// how did this happen? I almost want to make it a 500
-		w.WriteHeader(http.StatusBadRequest)
-		return
-	}
-
-	c := context.WithValue(context.Background(), keyUsername, username)
-	if handled, err := actor.PostInbox(c, w, r); err != nil {
-		log.Printf("error handling PostInbox for user %s: %s", username, err)
-		w.WriteHeader(http.StatusInternalServerError) // TODO
-		return
-	} else if handled {
-		log.Printf("handled PostInbox for user %s", username)
-		return
-	} else if handled, err = actor.GetInbox(c, w, r); err != nil {
-		log.Printf("error handling GetInbox for user %s: %s", username, err)
-		w.WriteHeader(http.StatusInternalServerError) // TODO
-		// Write to w
-		return
-	} else if handled {
-		log.Printf("handled GetInbox for user %s", username)
-		return
-	}
-	log.Println("else...?")
-	// else:
-	//
-	// Handle non-ActivityPub request, such as serving a webpage.
-}
-
-func (ap *ActivityPub) HandleOutbox(w http.ResponseWriter, r *http.Request) {
-	log.Printf("handlin outbox")
-	actor := pub.NewFederatingActor(
-		ap,       // common
-		ap,       // federating
-		ap.db,    // database
-		ap.clock, // clock
-	)
-
-	// TODO
-	c := context.Background()
-	// Populate c with request-specific information
-	if handled, err := actor.PostOutbox(c, w, r); err != nil {
-		// Write to w
-		return
-	} else if handled {
-		return
-	} else if handled, err = actor.GetOutbox(c, w, r); err != nil {
-		// Write to w
-		return
-	} else if handled {
-		return
-	}
-	// else:
-	//
-	// Handle non-ActivityPub request, such as serving a webpage.
 }
 
 // AuthenticateGetInbox delegates the authentication of a GET to an
@@ -131,6 +70,16 @@ func (ap *ActivityPub) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	// TODO how to determine if logged in?
 	log.Println("AuthenticateGetInbox")
+	/*
+		t := r.FormValue("Authorization")
+		if t == "" {
+			return c, false, nil
+		}
+		pieces := strings.Split(t, " ")
+		if len(pieces) != 2 {
+			return c, false, nil
+		}
+	*/
 	return c, false, nil
 }
 
@@ -371,4 +320,35 @@ func (ap *ActivityPub) GetInbox(c context.Context, r *http.Request) (vocab.Activ
 	// TODO
 	log.Println("getting inbox and returning vocab")
 	return streams.NewActivityStreamsOrderedCollectionPage(), nil
+}
+
+// TODO this should be somewhere else
+func (ap *ActivityPub) kidFromJWT(token string) string {
+	pieces := strings.Split(token, " ")
+	if len(pieces) != 2 {
+		return ""
+	}
+	if strings.ToLower(pieces[0]) != "bearer" {
+		return ""
+	}
+
+	segments := strings.Split(pieces[1], ".")
+	if len(segments) != 3 {
+		return ""
+	}
+
+	bytes, err := jwt.DecodeSegment(segments[1])
+	if err != nil {
+		log.Println("error decoding jwt segment: " + err.Error())
+		return ""
+	}
+	var kid struct {
+		ID string `json:"kid"`
+	}
+	err = json.Unmarshal(bytes, &kid)
+	if err != nil {
+		log.Println("error marshalling kid: " + err.Error())
+		return ""
+	}
+	return kid.ID
 }

@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/exlibris-fed/exlibris/key"
 	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/jinzhu/gorm"
@@ -33,12 +32,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	k, err := key.DeserializeRSAPrivateKey(u.PrivateKey)
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	jwt, err := key.GenerateJWT(k)
+	jwt, err := u.GenerateJWT()
 	if err != nil {
 		fmt.Println(err)
 		return

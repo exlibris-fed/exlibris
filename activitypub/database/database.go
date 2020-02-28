@@ -3,22 +3,27 @@ package database
 
 import (
 	"context"
+	"fmt"
+	"log"
 	"net/url"
+	"sync"
 
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/jinzhu/gorm"
 )
 
-// A Database is a connection to a database. It currently uses the gorm connection, which we may want to revisit later?
+// A Database is a connection to a database. It uses the gorm connection, so that we can still use the models.
 type Database struct {
-    db *gorm.DB
+	*gorm.DB
+	locks map[*url.URL]*sync.Mutex
 }
 
 // New returns a new database object.
 func New(db *gorm.DB) *Database {
-    return &Database{
-        db: db,
-    }
+	return &Database{
+		DB:    db,
+		locks: make(map[*url.URL]*sync.Mutex),
+	}
 }
 
 // Lock takes a lock for the object at the specified id. If an error
@@ -33,8 +38,13 @@ func New(db *gorm.DB) *Database {
 //
 // Used to ensure race conditions in multiple requests do not occur.
 func (d *Database) Lock(c context.Context, id *url.URL) error {
-    // TODO
-    return nil
+	lock, ok := d.locks[id]
+	if !ok {
+		lock = new(sync.Mutex)
+		d.locks[id] = lock
+	}
+	lock.Lock()
+	return nil
 }
 
 // Unlock makes the lock for the object at the specified id available.
@@ -42,8 +52,12 @@ func (d *Database) Lock(c context.Context, id *url.URL) error {
 //
 // Used to ensure race conditions in multiple requests do not occur.
 func (d *Database) Unlock(c context.Context, id *url.URL) error {
-    // TODO
-    return nil
+	lock, ok := d.locks[id]
+	if !ok {
+		return fmt.Errorf("lock does not exist for %s", id.String())
+	}
+	lock.Unlock()
+	return nil
 }
 
 // InboxContains returns true if the OrderedCollection at 'inbox'
@@ -51,8 +65,9 @@ func (d *Database) Unlock(c context.Context, id *url.URL) error {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) InboxContains(c context.Context, inbox, id *url.URL) (contains bool, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("inboxcontains")
+	return
 }
 
 // GetInbox returns the first ordered collection page of the outbox at
@@ -60,8 +75,9 @@ func (d *Database) InboxContains(c context.Context, inbox, id *url.URL) (contain
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) GetInbox(c context.Context, inboxIRI *url.URL) (inbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("getinbox")
+	return
 }
 
 // SetInbox saves the inbox value given from GetInbox, with new items
@@ -70,8 +86,9 @@ func (d *Database) GetInbox(c context.Context, inboxIRI *url.URL) (inbox vocab.A
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) SetInbox(c context.Context, inbox vocab.ActivityStreamsOrderedCollectionPage) error {
-    // TODO
-    return nil
+	// TODO
+	log.Println("setinbox")
+	return nil
 }
 
 // Owns returns true if the database has an entry for the IRI and it
@@ -79,24 +96,27 @@ func (d *Database) SetInbox(c context.Context, inbox vocab.ActivityStreamsOrdere
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Owns(c context.Context, id *url.URL) (owns bool, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("owns")
+	return
 }
 
 // ActorForOutbox fetches the actor's IRI for the given outbox IRI.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) ActorForOutbox(c context.Context, outboxIRI *url.URL) (actorIRI *url.URL, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("actorforoutbox")
+	return
 }
 
 // ActorForInbox fetches the actor's IRI for the given outbox IRI.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) ActorForInbox(c context.Context, inboxIRI *url.URL) (actorIRI *url.URL, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("actorforinbox")
+	return
 }
 
 // OutboxForInbox fetches the corresponding actor's outbox IRI for the
@@ -104,8 +124,9 @@ func (d *Database) ActorForInbox(c context.Context, inboxIRI *url.URL) (actorIRI
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) OutboxForInbox(c context.Context, inboxIRI *url.URL) (outboxIRI *url.URL, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("outboxforinbox")
+	return
 }
 
 // Exists returns true if the database has an entry for the specified
@@ -113,16 +134,18 @@ func (d *Database) OutboxForInbox(c context.Context, inboxIRI *url.URL) (outboxI
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Exists(c context.Context, id *url.URL) (exists bool, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("exists")
+	return
 }
 
 // Get returns the database entry for the specified id.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("get")
+	return
 }
 
 // Create adds a new entry to the database which must be able to be
@@ -138,8 +161,9 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 // Under certain conditions and network activities, Create may be called
 // multiple times for the same ActivityStreams object.
 func (d *Database) Create(c context.Context, asType vocab.Type) error {
-    // TODO
-    return nil
+	// TODO
+	log.Println("create")
+	return nil
 }
 
 // Update sets an existing entry to the database based on the value's
@@ -152,8 +176,9 @@ func (d *Database) Create(c context.Context, asType vocab.Type) error {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Update(c context.Context, asType vocab.Type) error {
-    // TODO
-    return nil
+	// TODO
+	log.Println("update")
+	return nil
 }
 
 // Delete removes the entry with the given id.
@@ -163,8 +188,9 @@ func (d *Database) Update(c context.Context, asType vocab.Type) error {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Delete(c context.Context, id *url.URL) error {
-    // TODO
-    return nil
+	// TODO
+	log.Println("delete")
+	return nil
 }
 
 // GetOutbox returns the first ordered collection page of the outbox
@@ -172,8 +198,9 @@ func (d *Database) Delete(c context.Context, id *url.URL) error {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) GetOutbox(c context.Context, inboxIRI *url.URL) (inbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("getoutbox")
+	return
 }
 
 // SetOutbox saves the outbox value given from GetOutbox, with new items
@@ -182,8 +209,9 @@ func (d *Database) GetOutbox(c context.Context, inboxIRI *url.URL) (inbox vocab.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) SetOutbox(c context.Context, inbox vocab.ActivityStreamsOrderedCollectionPage) error {
-    // TODO
-    return nil
+	// TODO
+	log.Println("setoutbox")
+	return nil
 }
 
 // NewId creates a new IRI id for the provided activity or object. The
@@ -193,8 +221,9 @@ func (d *Database) SetOutbox(c context.Context, inbox vocab.ActivityStreamsOrder
 // The go-fed library will handle setting the 'id' property on the
 // activity or object provided with the value returned.
 func (d *Database) NewId(c context.Context, t vocab.Type) (id *url.URL, err error) {
-    // TODO
-    return
+	// TODO
+	log.Println("newid")
+	return
 }
 
 // Followers obtains the Followers Collection for an actor with the
@@ -204,8 +233,8 @@ func (d *Database) NewId(c context.Context, t vocab.Type) (id *url.URL, err erro
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Followers(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
 
 // Following obtains the Following Collection for an actor with the
@@ -215,8 +244,8 @@ func (d *Database) Followers(c context.Context, actorIRI *url.URL) (followers vo
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Following(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
 
 // Liked obtains the Liked Collection for an actor with the
@@ -226,6 +255,6 @@ func (d *Database) Following(c context.Context, actorIRI *url.URL) (followers vo
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Liked(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
-    // TODO
-    return
+	// TODO
+	return
 }
