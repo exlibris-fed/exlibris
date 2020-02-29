@@ -5,6 +5,7 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
@@ -79,6 +80,36 @@ func (u *User) GenerateKeys() error {
 	}
 	u.PrivateKey = bytes
 	return nil
+}
+
+// IRI returns a url representing the user's profile
+func (u *User) IRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf("https://%s", u.ID))
+	if err != nil {
+		log.Printf("error creating IRI for user %s (%s): %s", u.ID, u.Username, err)
+		return nil
+	}
+	return URL
+}
+
+// OutboxIRI returns a url representing the user's outbox
+func (u *User) OutboxIRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf("https://%s/outbox", u.ID))
+	if err != nil {
+		log.Printf("error creating outbox IRI for user %s (%s): %s", u.ID, u.Username, err)
+		return nil
+	}
+	return URL
+}
+
+// InboxIRI returns a url representing the user's inbox
+func (u *User) InboxIRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf("https://%s/inbox", u.ID))
+	if err != nil {
+		log.Printf("error creating inbox IRI for user %s (%s): %s", u.ID, u.Username, err)
+		return nil
+	}
+	return URL
 }
 
 // IsPassword verifies that the specified password matches what's in the database.

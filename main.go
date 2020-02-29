@@ -36,9 +36,11 @@ func main() {
 	defer db.Close()
 
 	db.AutoMigrate(model.Author{})
+	db.AutoMigrate(model.APObject{})
 	db.AutoMigrate(model.Book{})
 	db.AutoMigrate(model.BookAuthor{})
 	db.AutoMigrate(model.BookSubject{})
+	db.AutoMigrate(model.OutboxEntry{})
 	db.AutoMigrate(model.Read{})
 	db.AutoMigrate(model.Review{})
 	db.AutoMigrate(model.Subject{})
