@@ -46,6 +46,14 @@ func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 	)
 }
 
+// Federate performs the actions necessary to take a newly created object or action and deliver it to the users' followers. It handles its own errors and retries, if necessary.
+//
+// NOTE: It doesn't actually retry right now.
+func (ap *ActivityPub) Federate(c context.Context, user model.User, f model.Federater) {
+	actor := ap.NewFederatingActor()
+	actor.Send(c, user.OutboxIRI(), f.ToType())
+}
+
 // AuthenticateGetInbox delegates the authentication of a GET to an
 // inbox.
 //

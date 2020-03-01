@@ -194,11 +194,6 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 // multiple times for the same ActivityStreams object.
 func (d *Database) Create(c context.Context, asType vocab.Type) error {
 	// TODO what if this isnt a read?
-	readI := c.Value(model.ContextKeyRead)
-	if readI == nil {
-		return fmt.Errorf("no read context")
-	}
-	// this seems wrong but time is running out
 	jid := asType.GetJSONLDId()
 	id, err := jid.Serialize()
 	if err != nil {
@@ -206,13 +201,33 @@ func (d *Database) Create(c context.Context, asType vocab.Type) error {
 	}
 	pieces := regexpID.FindStringSubmatch(id.(string))
 
-	read := readI.(*model.Read)
-	result := d.DB.Create(&model.APObject{
-		ID:     pieces[2],
-		UserID: pieces[1],
-		ReadID: read.ID,
-	})
-	return result.Error
+	u, err := uuid.Parse(pieces[2])
+	if err != nil {
+		return err
+	}
+	bytes, err := u.MarshalBinary()
+	if err != nil {
+		return err
+	}
+
+	var i int
+	d.DB.Model(model.Read{}).Where("id = ?", bytes).Count(&i)
+
+	// we already have this in the database, don't create it again
+	if i == 1 {
+		return nil
+	}
+
+	readI := c.Value(model.ContextKeyRead)
+	if readI == nil {
+		return fmt.Errorf("no read context")
+	}
+	//read := readI.(*model.Read)
+
+	log.Println("create is trying to create!!")
+	return fmt.Errorf("not implemented")
+
+	//return result.Error
 }
 
 // Update sets an existing entry to the database based on the value's

@@ -84,5 +84,10 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		BookID: id,
 	}
 	h.db.Create(&read)
+
+	log.Printf("%+v", read)
+
+	//go h.ap.Federate(c, user, read)
+
 	w.WriteHeader(http.StatusCreated)
 }
