@@ -10,6 +10,11 @@ import (
 	"github.com/go-fed/activity/streams/vocab"
 )
 
+const (
+	// ContextKeyRead is the context key to use for the read action
+	ContextKeyRead ContextKey = "read"
+)
+
 // Read is a many to many model describing a user who read a book. Because GORM does weird things with foreign keys we need to do it manually, unfortunately.
 type Read struct {
 	gormuuid.UUID

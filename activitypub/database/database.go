@@ -6,15 +6,26 @@ import (
 	"fmt"
 	"log"
 	"net/url"
+	"regexp"
 	"sync"
 
+	"github.com/exlibris-fed/exlibris/model"
+
+	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
+)
+
+var (
+	regexpID     = regexp.MustCompile("^https://(.+)/([^/]+)$")
+	regexpOutbox = regexp.MustCompile("^https://(.+)/outbox$")
+	regexpInbox  = regexp.MustCompile("^https://(.+)/inbox$")
 )
 
 // A Database is a connection to a database. It uses the gorm connection, so that we can still use the models.
 type Database struct {
-	*gorm.DB
+	DB    *gorm.DB
 	locks map[*url.URL]*sync.Mutex
 }
 
@@ -106,7 +117,8 @@ func (d *Database) Owns(c context.Context, id *url.URL) (owns bool, err error) {
 // The library makes this call only after acquiring a lock first.
 func (d *Database) ActorForOutbox(c context.Context, outboxIRI *url.URL) (actorIRI *url.URL, err error) {
 	// TODO
-	log.Println("actorforoutbox")
+	pieces := regexpID.FindStringSubmatch(outboxIRI.String())
+	actorIRI, err = url.Parse(fmt.Sprintf("https://%s", pieces[1]))
 	return
 }
 
@@ -144,7 +156,27 @@ func (d *Database) Exists(c context.Context, id *url.URL) (exists bool, err erro
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err error) {
 	// TODO
-	log.Println("get")
+	pieces := regexpID.FindStringSubmatch(id.String())
+	var object model.APObject
+	d.DB.First(&object, "id = ?", pieces[2])
+
+	// this could be better
+	var read model.Read
+	d.DB.First(&read, "id = ?", object.ReadID)
+
+	book := streams.NewActivityStreamsRead()
+	userIRI, err := url.Parse("https://" + pieces[1])
+	if err != nil {
+		return
+	}
+	asActor := streams.NewActivityStreamsActorProperty()
+	asActor.AppendIRI(userIRI)
+	book.SetActivityStreamsActor(asActor)
+
+	value = book
+	log.Printf("book = %+v", book)
+	log.Printf("value = %+v", value)
+
 	return
 }
 
@@ -161,9 +193,26 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 // Under certain conditions and network activities, Create may be called
 // multiple times for the same ActivityStreams object.
 func (d *Database) Create(c context.Context, asType vocab.Type) error {
-	// TODO
-	log.Println("create")
-	return nil
+	// TODO what if this isnt a read?
+	readI := c.Value(model.ContextKeyRead)
+	if readI == nil {
+		return fmt.Errorf("no read context")
+	}
+	// this seems wrong but time is running out
+	jid := asType.GetJSONLDId()
+	id, err := jid.Serialize()
+	if err != nil {
+		return err
+	}
+	pieces := regexpID.FindStringSubmatch(id.(string))
+
+	read := readI.(*model.Read)
+	result := d.DB.Create(&model.APObject{
+		ID:     pieces[2],
+		UserID: pieces[1],
+		ReadID: read.ID,
+	})
+	return result.Error
 }
 
 // Update sets an existing entry to the database based on the value's
@@ -198,8 +247,19 @@ func (d *Database) Delete(c context.Context, id *url.URL) error {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) GetOutbox(c context.Context, inboxIRI *url.URL) (inbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-	// TODO
-	log.Println("getoutbox")
+	pieces := regexpOutbox.FindStringSubmatch(inboxIRI.String())
+
+	inbox = streams.NewActivityStreamsOrderedCollectionPage()
+	id := streams.NewJSONLDIdProperty()
+	id.SetIRI(inboxIRI)
+	inbox.SetJSONLDId(id)
+
+	var entries []model.OutboxEntry
+	d.DB.Find(&entries, "user_id = ?", pieces[1])
+	for _, _ = range entries {
+		//log.Printf("found serialized %+v\n", e)
+	}
+
 	return
 }
 
@@ -209,8 +269,26 @@ func (d *Database) GetOutbox(c context.Context, inboxIRI *url.URL) (inbox vocab.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) SetOutbox(c context.Context, inbox vocab.ActivityStreamsOrderedCollectionPage) error {
-	// TODO
-	log.Println("setoutbox")
+	items := inbox.GetActivityStreamsOrderedItems()
+	if items == nil {
+		return fmt.Errorf("ordered items is nil. is this intended?")
+	}
+	id, err := inbox.GetJSONLDId().Serialize()
+	if err != nil {
+		return err
+	}
+	pieces := regexpOutbox.FindStringSubmatch(id.(string))
+
+	for item := items.Begin(); item != items.End(); item = item.Next() {
+		// TODO can you try to set things you didn't write? probably!
+		resp := d.DB.Create(&model.OutboxEntry{
+			Serialized: item.GetIRI().String(),
+			UserID:     pieces[1],
+		})
+		if resp.Error != nil {
+			return resp.Error
+		}
+	}
 	return nil
 }
 
@@ -221,8 +299,14 @@ func (d *Database) SetOutbox(c context.Context, inbox vocab.ActivityStreamsOrder
 // The go-fed library will handle setting the 'id' property on the
 // activity or object provided with the value returned.
 func (d *Database) NewId(c context.Context, t vocab.Type) (id *url.URL, err error) {
-	// TODO
-	log.Println("newid")
+	userI := c.Value(model.ContextKeyAuthenticatedUser)
+	if userI == nil {
+		return nil, fmt.Errorf("no authenticated user in context")
+	}
+	user := userI.(model.User)
+
+	id, err = url.Parse(fmt.Sprintf("https://%s/read/%v", user.ID, uuid.New().String()))
+
 	return
 }
 
@@ -234,6 +318,8 @@ func (d *Database) NewId(c context.Context, t vocab.Type) (id *url.URL, err erro
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Followers(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
 	// TODO
+
+	log.Println("followers")
 	return
 }
 
@@ -245,6 +331,7 @@ func (d *Database) Followers(c context.Context, actorIRI *url.URL) (followers vo
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Following(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
 	// TODO
+	log.Println("following")
 	return
 }
 
@@ -256,5 +343,6 @@ func (d *Database) Following(c context.Context, actorIRI *url.URL) (followers vo
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Liked(c context.Context, actorIRI *url.URL) (followers vocab.ActivityStreamsCollection, err error) {
 	// TODO
+	log.Println("liked")
 	return
 }

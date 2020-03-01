@@ -2,13 +2,13 @@ package activitypub
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 
 	"github.com/exlibris-fed/exlibris/activitypub/clock"
 	"github.com/exlibris-fed/exlibris/activitypub/database"
-	"github.com/exlibris-fed/exlibris/key"
 	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/go-fed/activity/pub"
@@ -99,6 +99,8 @@ func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWr
 // to be processed.
 func (ap *ActivityPub) AuthenticateGetOutbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	// TODO
+
+	log.Println("auth get out")
 	return
 }
 
@@ -112,6 +114,7 @@ func (ap *ActivityPub) AuthenticateGetOutbox(c context.Context, w http.ResponseW
 // API is enabled.
 func (ap *ActivityPub) GetOutbox(c context.Context, r *http.Request) (vocab.ActivityStreamsOrderedCollectionPage, error) {
 	// TODO
+	log.Println("get out")
 	return streams.NewActivityStreamsOrderedCollectionPage(), nil
 }
 
@@ -141,11 +144,11 @@ func (ap *ActivityPub) GetOutbox(c context.Context, r *http.Request) (vocab.Acti
 func (ap *ActivityPub) NewTransport(c context.Context, actorBoxIRI *url.URL, gofedAgent string) (t pub.Transport, err error) {
 	// TODO don't use the default implementation
 
-	// TODO get user's PK instead of making a new one each time, jfc
-	pk, err := key.New()
-	if err != nil {
-		log.Println("error generating key: " + err.Error())
+	userI := c.Value(model.ContextKeyAuthenticatedUser)
+	if userI == nil {
+		return nil, fmt.Errorf("no authenticated user in context")
 	}
+	user := userI.(model.User)
 
 	t = pub.NewHttpSigTransport(
 		&http.Client{},
@@ -154,7 +157,7 @@ func (ap *ActivityPub) NewTransport(c context.Context, actorBoxIRI *url.URL, gof
 		ap.signer([]string{}), // TODO headers
 		ap.signer([]string{}), // TODO headers
 		"",                    // TODO THIS NEEDS TO BE A PATH TO A PUBLIC KEY (ie /keys/%s)
-		pk,
+		user.PrivateKey,
 	)
 	return
 }
@@ -191,6 +194,7 @@ func (ap *ActivityPub) signer(headers []string) httpsig.Signer {
 // to PostInbox will do so when handling the error.
 func (ap *ActivityPub) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (context.Context, error) {
 	// TODO
+	log.Println("pirbh")
 	return c, nil
 }
 
@@ -212,6 +216,7 @@ func (ap *ActivityPub) PostInboxRequestBodyHook(c context.Context, r *http.Reque
 // to be processed.
 func (ap *ActivityPub) AuthenticatePostInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	// TODO
+	log.Println("auth post i")
 	return
 }
 
@@ -231,6 +236,7 @@ func (ap *ActivityPub) AuthenticatePostInbox(c context.Context, w http.ResponseW
 // to be processed.
 func (ap *ActivityPub) Blocked(c context.Context, actorIRIs []*url.URL) (blocked bool, err error) {
 	// TODO
+	log.Println("blocked")
 	return
 }
 
@@ -278,7 +284,7 @@ func (ap *ActivityPub) DefaultCallback(c context.Context, activity pub.Activity)
 // Zero or negative numbers indicate infinite recursion.
 func (ap *ActivityPub) MaxInboxForwardingRecursionDepth(c context.Context) int {
 	// TODO
-	return 1
+	return 0
 }
 
 // MaxDeliveryRecursionDepth determines how deep to search within
@@ -288,7 +294,7 @@ func (ap *ActivityPub) MaxInboxForwardingRecursionDepth(c context.Context) int {
 // Zero or negative numbers indicate infinite recursion.
 func (ap *ActivityPub) MaxDeliveryRecursionDepth(c context.Context) int {
 	// TODO
-	return 1
+	return 0
 }
 
 // FilterForwarding allows the implementation to apply business logic
@@ -300,6 +306,7 @@ func (ap *ActivityPub) MaxDeliveryRecursionDepth(c context.Context) int {
 // logic to be used, but the implementation must not modify it.
 func (ap *ActivityPub) FilterForwarding(c context.Context, potentialRecipients []*url.URL, a pub.Activity) (filteredRecipients []*url.URL, err error) {
 	// TODO
+	log.Println("filter for")
 	return
 }
 

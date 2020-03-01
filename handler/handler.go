@@ -14,6 +14,7 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/exlibris-fed/openlibrary-go"
+	"github.com/go-fed/activity/streams"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 )
@@ -57,7 +58,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := model.NewUser(request.Username, request.Password, request.Email, request.DisplayName)
+	user, err := model.NewUser(request.Username, request.DisplayName, request.Email, request.Password)
 	if err != nil {
 		log.Println("error creating user object: " + err.Error())
 	}
@@ -152,6 +153,31 @@ func (h *Handler) contextFromRequest(r *http.Request) context.Context {
 }
 
 func (h *Handler) FederationTest(w http.ResponseWriter, r *http.Request) {
+	c := h.contextFromRequest(r)
+	userI := c.Value(model.ContextKeyAuthenticatedUser)
+	if userI == nil {
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	user, ok := userI.(model.User)
+	if !ok {
+		log.Printf("userI is %T, not model.User", userI)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+	// TODO
+	readActivity := &model.Read{
+		FKUser: user.ID,
+		FKBook: "QWERTY",
+	}
+	c = context.WithValue(c, model.ContextKeyRead, readActivity)
+
+	actor := h.ap.NewFederatingActor()
+	book := streams.NewActivityStreamsRead()
+	asActor := streams.NewActivityStreamsActorProperty()
+	asActor.AppendIRI(user.IRI())
+	book.SetActivityStreamsActor(asActor)
+	actor.Send(c, user.OutboxIRI(), book)
 }
 
 // HandleInbox is the http handler for an ActivityPub user's inbox.
