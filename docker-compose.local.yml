@@ -15,7 +15,7 @@ services:
       context: .
       dockerfile: dev.Dockerfile
     ports:
-      - 8081:8080
+      - 8080:8080
     env_file:
         - app.env
     volumes:

@@ -47,16 +47,17 @@ func main() {
 	h := handler.New(db)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/book", h.SearchBooks)
-	r.HandleFunc("/book/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/book/read", h.GetReads)
-	r.HandleFunc("/user/{username}/inbox", h.HandleInbox)
-	r.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
-	r.HandleFunc("/@{username}/inbox", h.HandleInbox)
-	r.HandleFunc("/@{username}/outbox", h.HandleOutbox)
-	r.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/book", h.SearchBooks)
+	r.HandleFunc("/api/book/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/api/book/read", h.GetReads)
+	r.HandleFunc("/api/user/{username}/inbox", h.HandleInbox)
+	r.HandleFunc("/api/user/{username}/outbox", h.HandleOutbox)
+	r.HandleFunc("/api/@{username}/inbox", h.HandleInbox)
+	r.HandleFunc("/api/@{username}/outbox", h.HandleOutbox)
+	r.HandleFunc("/api/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
 	loggedRouter := handlers.LoggingHandler(os.Stdout,
 		handlers.CORS(
 			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"}),
