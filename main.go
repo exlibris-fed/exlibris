@@ -62,7 +62,9 @@ func main() {
 
 	// App
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
-	loggedRouter := handlers.LoggingHandler(os.Stdout,r)
+	corsRouter := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedHeaders([]string{"Content-Type"}))
+	loggedRouter := handlers.LoggingHandler(os.Stdout, corsRouter(r))
 
 	addr := net.JoinHostPort(host, port)
 	log.Println("Starting on ", addr)

@@ -1,7 +1,6 @@
-run: build
-	docker-compose up
+run:
+	docker-compose up --build
 build:
-	npm run build
 	docker build -t exlibris:latest .
 run-local:
 	docker-compose down

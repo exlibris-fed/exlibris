@@ -25,47 +25,47 @@ import axios from "axios";
     },
   methods: {
     login(username, password) {
-      axios.post('https://exlibris-fed.herokuapp.com/authenticate', { 
+      axios.post(process.env.VUE_APP_API_ORIGIN+'/authenticate', {
         "username": `${username}`,
         "password": `${password}`
       }).then(response => console.log(response))
-    }    
+    }
   }
 }
 </script>
 
 <style scoped>
-    h1, h2 {
-        text-align: center;
-        font-family: 'Literata'; 
-        font-weight: normal;
-    }
+  h1, h2 {
+    text-align: center;
+    font-family: 'Literata';
+    font-weight: normal;
+  }
 
-    ul {
-        list-style-type: none;
-        padding: 0;
-    }
+  ul {
+    list-style-type: none;
+    padding: 0;
+  }
 
-    li {
-        display: inline-block;
-        margin: 0 10px;
-    }
+  li {
+    display: inline-block;
+    margin: 0 10px;
+  }
 
-    a {
-        color: #42b983;
-    }
+  a {
+    color: #42b983;
+  }
 
-    textarea {
-        width: 600px;
-        height: 200px;
-    }
+  textarea {
+    width: 600px;
+    height: 200px;
+  }
 
   #container {
     display: flex;
     justify-content: center;
   }
 
-    .hello {
-      justify-content: center;
-    }
+  .hello {
+    justify-content: center;
+  }
 </style>
