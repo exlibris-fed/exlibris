@@ -10,10 +10,10 @@ import (
 
 	"github.com/exlibris-fed/exlibris/handler"
 	"github.com/exlibris-fed/exlibris/model"
-	"github.com/jinzhu/gorm"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -52,7 +52,7 @@ func main() {
 	r.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/book", h.SearchBooks)
-	r.HandleFunc("/book/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
+	r.HandleFunc("/book/{book}/read", h.Read) //.Methods(http.MethodPost, http.MethodOptions)
 	r.HandleFunc("/book/read", h.GetReads)
 	r.HandleFunc("/user/{username}/inbox", h.HandleInbox)
 	r.HandleFunc("/user/{username}/outbox", h.HandleOutbox)

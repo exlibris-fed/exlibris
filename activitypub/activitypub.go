@@ -50,6 +50,7 @@ func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 //
 // NOTE: It doesn't actually retry right now.
 func (ap *ActivityPub) Federate(c context.Context, user model.User, f model.Federater) {
+	// GET THE USER AND BOOK OBJECTS YO
 	actor := ap.NewFederatingActor()
 	actor.Send(c, user.OutboxIRI(), f.ToType())
 }

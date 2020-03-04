@@ -14,7 +14,6 @@ import (
 
 	"github.com/dgrijalva/jwt-go"
 	"github.com/exlibris-fed/openlibrary-go"
-	"github.com/go-fed/activity/streams"
 	"github.com/gorilla/mux"
 	"github.com/jinzhu/gorm"
 )
@@ -58,7 +57,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := model.NewUser(request.Username, request.DisplayName, request.Email, request.Password)
+	user, err := model.NewUser(request.Username, request.Password, request.Email, request.DisplayName)
 	if err != nil {
 		log.Println("error creating user object: " + err.Error())
 	}
@@ -94,11 +93,13 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	log.Println("here")
 
 	if request.Username == "" || request.Password == "" {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	log.Println("there")
 
 	var user model.User
 	h.db.First(&user, "username = ?", request.Username)
@@ -106,8 +107,10 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	log.Println("everywhere")
 
 	if !user.IsPassword(request.Password) {
+		log.Printf("you entered: %s\nwe have:\n%v", request.Password, user.Password)
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -116,6 +119,7 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		log.Printf("error generating jwt for user %s: %s", user.Username, err)
 		// still return 401 because auth failed. is this correct?
+		log.Println("jwt")
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -152,6 +156,7 @@ func (h *Handler) contextFromRequest(r *http.Request) context.Context {
 	return c
 }
 
+/*
 func (h *Handler) FederationTest(w http.ResponseWriter, r *http.Request) {
 	c := h.contextFromRequest(r)
 	userI := c.Value(model.ContextKeyAuthenticatedUser)
@@ -167,18 +172,15 @@ func (h *Handler) FederationTest(w http.ResponseWriter, r *http.Request) {
 	}
 	// TODO
 	readActivity := &model.Read{
-		FKUser: user.ID,
+		UserID: user.ID,
 		FKBook: "QWERTY",
 	}
 	c = context.WithValue(c, model.ContextKeyRead, readActivity)
 
 	actor := h.ap.NewFederatingActor()
-	book := streams.NewActivityStreamsRead()
-	asActor := streams.NewActivityStreamsActorProperty()
-	asActor.AppendIRI(user.IRI())
-	book.SetActivityStreamsActor(asActor)
-	actor.Send(c, user.OutboxIRI(), book)
+	actor.Send(c, user.OutboxIRI(), read)
 }
+*/
 
 // HandleInbox is the http handler for an ActivityPub user's inbox.
 func (h *Handler) HandleInbox(w http.ResponseWriter, r *http.Request) {
@@ -249,7 +251,7 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 	var response []dto.Book
 	for _, book := range books {
 		b := dto.Book{
-			ID: book.Key,
+			ID:        book.Key,
 			Title:     book.Title,
 			Authors:   []string{},
 			Published: book.FirstPublishYear,

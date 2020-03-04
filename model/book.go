@@ -7,18 +7,17 @@ import (
 
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/jinzhu/gorm"
 )
 
 // A Book is something that can be read. Currently this only supports things which are in the Library of Congress API, but eventually it'd be great to support fanfiction and other online-only sources.
 type Book struct {
-	Created   time.Time
-	Updated   time.Time
-	Deleted   time.Time
 	ID        string   `gorm:"primary_key" json:"id"`
 	Title     string   `gorm:"not null;index" json:"title"`
 	Published int      `json:"published,omitempty"`
 	ISBN      string   `json:"isbn,omitempty"`
 	Authors   []Author `gorm:"-"`
+	db        *gorm.DB
 }
 
 // NewBook returns a new instance of a book
