@@ -26,13 +26,13 @@ export default {
   data() {
     return { books: [] };
   },
-  methods: { 	
+  methods: {
     onTermChange(searchTerm) {
-      axios.get('https://exlibris-fed.herokuapp.com/book', {
+      axios.get(process.env.VUE_APP_API_ORIGIN+'/book', {
         params: {
           title: searchTerm
         }
-      }).then(response => { 
+      }).then(response => {
           this.books = response.data;
       });
     }
@@ -43,9 +43,9 @@ export default {
 <style>
 
 #title {
-	margin: 20px;
-	display: flex;
-	justify-content: center;
+  margin: 20px;
+  display: flex;
+  justify-content: center;
 }
 
 #seachbar {
@@ -59,13 +59,13 @@ BookGird {
 
 h1 {
   margin: 5px;
-  font-family: 'Literata'; 
+  font-family: 'Literata';
 }
 
 h2 {
   margin: 5px;
   font-family: 'Literata';
-  text-align: center; 
+  text-align: center;
 }
 
 img {

@@ -7,13 +7,13 @@
       <div class="buttons">
         <button valign="bottom" type="button" class="btn btn-outline-success p-2">I've Read This</button>
         <button valign="bottom" type="button" class="btn btn-outline-warning mt-auto p-2">Write A Review</button>
-      </div>  
+      </div>
     </div>
-  </div> 
+  </div>
 </template>
 
 <script>
-export default { 
+export default {
   name: 'BookGridCard',
   props: ['book']
 };
@@ -49,7 +49,7 @@ export default {
 }
 
 .card-text {
-  margin-bottom: 0px; 
+  margin-bottom: 0px;
 }
 
 .buttons {

@@ -1,8 +1,8 @@
 <template>
   <div class="container-fluid">
     <div id="grid-wrapper" class="row row-cols-6">
-      <BookGridCard 
-        v-for="book in books" 
+      <BookGridCard
+        v-for="book in books"
         :key="book.title"
         :book="book"
       >
@@ -41,4 +41,3 @@ BookGridCard:hover {
 }
 
 </style>
- 

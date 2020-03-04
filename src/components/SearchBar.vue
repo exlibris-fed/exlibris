@@ -25,4 +25,3 @@ input:focus {
   transform: scale(1.25);
 }
 </style>
- 
