@@ -1,3 +1,5 @@
+SHELL := /bin/bash
+
 run:
 	docker-compose up --build
 build:
@@ -5,8 +7,10 @@ build:
 run-local:
 	docker-compose -f docker-compose.local.yml down
 	docker-compose -f docker-compose.local.yml up -d
-	npm run build
-	go run main.go
+	npm install
+	go get github.com/githubnemo/CompileDaemon
+	set -a && source app.env && CompileDaemon -build='go build -o exlibris' -directory=. -command=./exlibris &
+	set -a && source .env && npm run serve
 dev:
 	docker-compose -f docker-compose.dev.yml down
 	docker-compose -f docker-compose.dev.yml up --build
