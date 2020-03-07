@@ -3,7 +3,7 @@
     <img id="book-cover" :src="book.covers.medium" alt="../public/greek-column.svg" class="card-img-top p-4">
     <div class="card-body d-flex flex-column">
       <h5 class="card-title"> {{ book.title }} </h5>
-      <p class="card-text">Author: {{ book.authors[0] }} </p>
+      <p class="card-text">{{ $t('attribution') }} {{ book.authors[0] }} </p>
       <div class="buttons">
         <button valign="bottom" type="button" class="btn btn-outline-success p-2">{{ $t('read') }}</button>
         <button valign="bottom" type="button" class="btn btn-outline-warning mt-auto p-2">{{ $t('review') }}</button>
@@ -19,6 +19,7 @@ export default {
   i18n: {
     messages: {
       en: {
+        attribution: 'By',
         read: "I've Read This",
         review: 'Write A Review'
       }
