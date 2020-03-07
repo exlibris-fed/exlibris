@@ -4,7 +4,7 @@
       <SearchBar @termChange="onTermChange"></SearchBar>
     </div>
     <div id="discover">
-      <h2>What have you read lately?</h2>
+      <h2>{{ $t('callToAction') }}</h2>
     </div>
     <div id="bookgrid-container">
     <BookGrid :books="books"></BookGrid>
@@ -35,6 +35,13 @@ export default {
       }).then(response => {
           this.books = response.data;
       });
+    }
+  },
+  i18n: {
+    messages: {
+      en: {
+        callToAction: 'What have you read lately?'
+      }
     }
   }
 }

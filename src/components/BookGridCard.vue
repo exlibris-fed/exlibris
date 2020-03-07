@@ -5,8 +5,8 @@
       <h5 class="card-title"> {{ book.title }} </h5>
       <p class="card-text">Author: {{ book.authors[0] }} </p>
       <div class="buttons">
-        <button valign="bottom" type="button" class="btn btn-outline-success p-2">I've Read This</button>
-        <button valign="bottom" type="button" class="btn btn-outline-warning mt-auto p-2">Write A Review</button>
+        <button valign="bottom" type="button" class="btn btn-outline-success p-2">{{ $t('read') }}</button>
+        <button valign="bottom" type="button" class="btn btn-outline-warning mt-auto p-2">{{ $t('review') }}</button>
       </div>
     </div>
   </div>
@@ -15,7 +15,15 @@
 <script>
 export default {
   name: 'BookGridCard',
-  props: ['book']
+  props: ['book'],
+  i18n: {
+    messages: {
+      en: {
+        read: "I've Read This",
+        review: 'Write A Review'
+      }
+    }
+  }
 };
 </script>
 

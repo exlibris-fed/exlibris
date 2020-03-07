@@ -3,7 +3,7 @@
     <div id="grid-wrapper" class="row row-cols-6">
       <BookGridCard
         v-for="book in books"
-        :key="book.title"
+        :key="book.id"
         :book="book"
       >
       </BookGridCard>

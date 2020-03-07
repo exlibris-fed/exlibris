@@ -1,6 +1,6 @@
 <template>
   <div id='search-wrapper'>
-    <input @input="onInput" placeholder="Search Books..." size="40"/>
+    <input @input="onInput" :placeholder="$t('search')" size="40"/>
   </div>
 </template>
 
@@ -10,6 +10,13 @@ export default {
   methods: {
     onInput: function(event) {
       this.$emit('termChange', event.target.value);
+    }
+  },
+  i18n: {
+    messages: {
+      en: {
+        search: 'Search books...'
+      }
     }
   }
 };

@@ -1,11 +1,11 @@
 <template>
   <div id="container">
     <div class="hello">
-        <h1>Login</h1>
+        <h1>{{ $t('form.login') }}</h1>
         <div v-if="this.errorMessage">{{ this.errorMessage }}</div>
-        <input type="text" v-model="username" placeholder="Username" />
-        <input type="password" v-model="password" placeholder="Password" />
-        <button @click="login()">Send</button>
+        <input type="text" v-model="username" :placeholder="$t('form.username')" />
+        <input type="password" v-model="password" :placeholder="$t('form.password')" />
+        <button @click="login()">{{ $t('form.send' ) }}</button>
     </div>
   </div>
 </template>
@@ -40,12 +40,27 @@ import axios from "axios";
       })
       .catch(error => {
         if (error.response && error.response.status == 401) {
-            this.errorMessage = 'Invalid username/password combination';
+            this.errorMessage = this.$t('errors.badPassword');
             return;
           }
         this.error = 'An error occurred during the request'; // this sucks as well
         console.error(error);
       })
+    }
+  },
+  i18n: {
+    messages: {
+      en: {
+        form: {
+          login: 'Login',
+          username: 'Username',
+          password: 'Password',
+          send: 'Send'
+        },
+        errors: {
+          badPassword: 'Invalid username/password combination'
+        }
+      }
     }
   }
 }
