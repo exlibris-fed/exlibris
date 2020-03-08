@@ -3,8 +3,14 @@ name: CI
 on: [push]
 
 jobs:
-  build:
+  lint app:
+    runs-on: ubuntu-latest
 
+    steps:
+      - name: Lint
+        run: npm run lint
+
+  build:
     runs-on: ubuntu-latest
 
     steps:

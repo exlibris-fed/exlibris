@@ -1,51 +1,72 @@
 <template>
   <div id="container">
     <div class="hello">
-        <h1>Login</h1>
-        <div v-if="this.errorMessage">{{ this.errorMessage }}</div>
-        <input type="text" v-model="username" placeholder="Username" />
-        <input type="password" v-model="password" placeholder="Password" />
-        <button @click="login()">Send</button>
+      <h1>Login</h1>
+      <div v-if="errorMessage">
+        {{ errorMessage }}
+      </div>
+      <input
+        v-model="username"
+        type="text"
+        placeholder="Username"
+      >
+      <input
+        v-model="password"
+        type="password"
+        placeholder="Password"
+      >
+      <button @click="login()">
+        Send
+      </button>
     </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import axios from 'axios'
 
-  export default {
-    name: 'LoginPage',
-    props: ['error', 'bounceto'],
-    data () {
-      return {
-        username: undefined,
-        password: undefined,
-        errorMessage: this.error,
-      }
+export default {
+  name: 'LoginPage',
+  props: {
+    error: {
+      type: String,
+      default: ''
     },
+    bounceto: {
+      type: String,
+      default: ''
+    }
+  },
+  data () {
+    return {
+      username: undefined,
+      password: undefined,
+      errorMessage: this.error
+    }
+  },
   methods: {
-    login() {
-      axios.post(process.env.VUE_APP_API_ORIGIN+'/authenticate', {
-        "username": this.username,
-        "password": this.password
+    login () {
+      axios.post(process.env.VUE_APP_API_ORIGIN + '/authenticate', {
+        username: this.username,
+        password: this.password
       })
-      .then(response => {
-              if (!response || !response.data || !response.data.bearer) {
-                this.errorMessage = 'Bad response from the server'; // this sucks
-                return;
-              }
-              this.errorMessage = '';
-              localStorage.setItem('auth', response.data.bearer);
-              this.$router.push(this.bounceto || '/');
-      })
-      .catch(error => {
-        if (error.response && error.response.status == 401) {
-            this.errorMessage = 'Invalid username/password combination';
-            return;
+        .then(response => {
+          if (!response || !response.data || !response.data.bearer) {
+            this.errorMessage = 'Bad response from the server' // this sucks
+            return
           }
-        this.error = 'An error occurred during the request'; // this sucks as well
-        console.error(error);
-      })
+          this.errorMessage = ''
+          localStorage.setItem('auth', response.data.bearer)
+          this.$router.push(this.bounceto || '/')
+        })
+        .catch(error => {
+          if (error.response && error.response.status === 401) {
+            this.errorMessage = 'Invalid username/password combination'
+            return
+          }
+          this.error = 'An error occurred during the request' // this sucks as well
+          console.error(error)
+        })
     }
   }
 }
