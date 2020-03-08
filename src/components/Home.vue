@@ -1,40 +1,40 @@
 <template>
   <div id="app">
     <div id="seachbar">
-      <SearchBar @termChange="onTermChange"></SearchBar>
+      <SearchBar @termChange="onTermChange" />
     </div>
     <div id="discover">
       <h2>{{ $t('callToAction') }}</h2>
     </div>
     <div id="bookgrid-container">
-    <BookGrid :books="books"></BookGrid>
+      <BookGrid :books="books" />
     </div>
   </div>
 </template>
 
 <script>
-import SearchBar from '../components/SearchBar.vue';
-import BookGrid from '../components/BookGrid.vue';
+import SearchBar from '../components/SearchBar.vue'
+import BookGrid from '../components/BookGrid.vue'
 import axios from 'axios'
 
 export default {
-  name:'HomePage',
+  name: 'HomePage',
   components: {
     SearchBar,
     BookGrid
   },
-  data() {
-    return { books: [] };
+  data () {
+    return { books: [] }
   },
   methods: {
-    onTermChange(searchTerm) {
-      axios.get(process.env.VUE_APP_API_ORIGIN+'/book', {
+    onTermChange (searchTerm) {
+      axios.get(process.env.VUE_APP_API_ORIGIN + '/book', {
         params: {
           title: searchTerm
         }
       }).then(response => {
-          this.books = response.data;
-      });
+        this.books = response.data
+      })
     }
   },
   i18n: {

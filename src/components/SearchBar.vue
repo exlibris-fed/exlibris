@@ -1,6 +1,10 @@
 <template>
-  <div id='search-wrapper'>
-    <input @input="onInput" :placeholder="$t('search')" size="40"/>
+  <div id="search-wrapper">
+    <input
+      :placeholder="$t('search')"
+      size="40"
+      @input="onInput"
+    >
   </div>
 </template>
 
@@ -8,8 +12,8 @@
 export default {
   name: 'SearchBar',
   methods: {
-    onInput: function(event) {
-      this.$emit('termChange', event.target.value);
+    onInput: function (event) {
+      this.$emit('termChange', event.target.value)
     }
   },
   i18n: {
@@ -19,7 +23,7 @@ export default {
       }
     }
   }
-};
+}
 </script>
 
 <style>

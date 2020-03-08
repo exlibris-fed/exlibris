@@ -1,26 +1,33 @@
 <template>
   <div class="container-fluid">
-    <div id="grid-wrapper" class="row row-cols-6">
+    <div
+      id="grid-wrapper"
+      class="row row-cols-6"
+    >
       <BookGridCard
         v-for="book in books"
         :key="book.id"
         :book="book"
-      >
-      </BookGridCard>
+      />
     </div>
   </div>
 </template>
 
 <script>
-import BookGridCard from './BookGridCard.vue';
+import BookGridCard from './BookGridCard.vue'
 
 export default {
   name: 'BookGrid',
   components: {
     BookGridCard
   },
-  props: ['books']
-};
+  props: {
+    books: {
+      type: Array,
+      required: true
+    }
+  }
+}
 </script>
 
 <style>
