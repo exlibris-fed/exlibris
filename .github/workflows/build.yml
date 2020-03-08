@@ -12,8 +12,8 @@ jobs:
       with:
         fetch_depth: 1
 
-      - name: Lint
-        run: npm run lint
+    - name: Lint
+      run: npm run lint
 
   build:
     runs-on: ubuntu-latest
