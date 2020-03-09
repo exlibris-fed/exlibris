@@ -1,6 +1,10 @@
 <template>
-  <div id='search-wrapper'>
-    <input @input="onInput" placeholder="Search Books..." size="40"/>
+  <div id="search-wrapper">
+    <input
+      placeholder="Search Books..."
+      size="40"
+      @input="onInput"
+    >
   </div>
 </template>
 
@@ -8,11 +12,11 @@
 export default {
   name: 'SearchBar',
   methods: {
-    onInput: function(event) {
-      this.$emit('termChange', event.target.value);
+    onInput: function (event) {
+      this.$emit('termChange', event.target.value)
     }
   }
-};
+}
 </script>
 
 <style>
@@ -25,4 +29,3 @@ input:focus {
   transform: scale(1.25);
 }
 </style>
- 

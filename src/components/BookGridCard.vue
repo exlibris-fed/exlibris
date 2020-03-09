@@ -1,22 +1,48 @@
 <template>
   <div class="card">
-    <img id="book-cover" :src="book.covers.medium" alt="../public/greek-column.svg" class="card-img-top p-4">
+    <img
+      id="book-cover"
+      :src="book.covers.medium"
+      alt="../public/greek-column.svg"
+      class="card-img-top p-4"
+    >
     <div class="card-body d-flex flex-column">
-      <h5 class="card-title"> {{ book.title }} </h5>
-      <p class="card-text">Author: {{ book.authors[0] }} </p>
+      <h5 class="card-title">
+        {{ book.title }}
+      </h5>
+      <p class="card-text">
+        Author: {{ book.authors[0] }}
+      </p>
       <div class="buttons">
-        <button valign="bottom" type="button" class="btn btn-outline-success p-2">I've Read This</button>
-        <button valign="bottom" type="button" class="btn btn-outline-warning mt-auto p-2">Write A Review</button>
-      </div>  
+        <button
+          valign="bottom"
+          type="button"
+          class="btn btn-outline-success p-2"
+        >
+          I've Read This
+        </button>
+        <button
+          valign="bottom"
+          type="button"
+          class="btn btn-outline-warning mt-auto p-2"
+        >
+          Write A Review
+        </button>
+      </div>
     </div>
-  </div> 
+  </div>
 </template>
 
 <script>
-export default { 
+export default {
   name: 'BookGridCard',
-  props: ['book']
-};
+  props: {
+    book: {
+      type: Object,
+      required: true
+    }
+  }
+}
 </script>
 
 <style>
@@ -49,7 +75,7 @@ export default {
 }
 
 .card-text {
-  margin-bottom: 0px; 
+  margin-bottom: 0px;
 }
 
 .buttons {

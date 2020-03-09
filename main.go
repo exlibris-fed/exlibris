@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -49,25 +48,28 @@ func main() {
 	h := handler.New(db)
 
 	r := mux.NewRouter()
-	r.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/book", h.SearchBooks)
-	r.HandleFunc("/book/{book}/read", h.Read) //.Methods(http.MethodPost, http.MethodOptions)
-	r.HandleFunc("/book/read", h.GetReads)
-	r.HandleFunc("/user/{username}/inbox", h.HandleInbox)
-	r.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
-	r.HandleFunc("/@{username}/inbox", h.HandleInbox)
-	r.HandleFunc("/@{username}/outbox", h.HandleOutbox)
 
-	loggedRouter := handlers.LoggingHandler(os.Stdout,
-		handlers.CORS(
-			handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "PUT", "OPTIONS"}),
-			handlers.AllowedOrigins([]string{"*"}),
-		)(r),
-	)
+	// APIs
+	api := r.PathPrefix("/api").Subrouter()
+	api.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
+	api.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
+	api.HandleFunc("/book", h.SearchBooks)
+	api.HandleFunc("/book/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
+	api.HandleFunc("/book/read", h.GetReads)
+	api.HandleFunc("/user/{username}/inbox", h.HandleInbox)
+	api.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
+	api.HandleFunc("/@{username}/inbox", h.HandleInbox)
+	api.HandleFunc("/@{username}/outbox", h.HandleOutbox)
+	//api.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
+
+	// App
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
+	corsRouter := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
+		handlers.AllowedHeaders([]string{"Content-Type"}))
+	loggedRouter := handlers.LoggingHandler(os.Stdout, corsRouter(r))
 
 	addr := net.JoinHostPort(host, port)
-	log.Println("Starting on ", addr)
+	log.Println("Starting on", addr)
 
 	server := &http.Server{
 		Handler:      loggedRouter,
@@ -75,6 +77,5 @@ func main() {
 		WriteTimeout: 15 * time.Second,
 		ReadTimeout:  15 * time.Second,
 	}
-	fmt.Println("exlibris running")
 	log.Fatal(server.ListenAndServe())
 }
