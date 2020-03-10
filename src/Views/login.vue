@@ -1,22 +1,22 @@
 <template>
   <div id="container">
     <div class="hello">
-      <h1>Login</h1>
+      <h1>{{ $t('form.login') }}</h1>
       <div v-if="errorMessage">
         {{ errorMessage }}
       </div>
       <input
         v-model="username"
         type="text"
-        placeholder="Username"
+        :placeholder="$t('form.username')"
       >
       <input
         v-model="password"
         type="password"
-        placeholder="Password"
+        :placeholder="$t('form.password')"
       >
       <button @click="login()">
-        Send
+        {{ $t('form.send' ) }}
       </button>
     </div>
   </div>
@@ -52,7 +52,7 @@ export default {
       })
         .then(response => {
           if (!response || !response.data || !response.data.bearer) {
-            this.errorMessage = 'Bad response from the server' // this sucks
+            this.errorMessage = this.$t('errors.badPassword')
             return
           }
           this.errorMessage = ''
@@ -67,6 +67,21 @@ export default {
           this.error = 'An error occurred during the request' // this sucks as well
           console.error(error)
         })
+    }
+  },
+  i18n: {
+    messages: {
+      en: {
+        form: {
+          login: 'Login',
+          username: 'Username',
+          password: 'Password',
+          send: 'Send'
+        },
+        errors: {
+          badPassword: 'Invalid username/password combination'
+        }
+      }
     }
   }
 }

@@ -6,7 +6,7 @@
     >
       <BookGridCard
         v-for="book in books"
-        :key="book.title"
+        :key="book.id"
         :book="book"
       />
     </div>
