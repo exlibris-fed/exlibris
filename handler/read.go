@@ -13,7 +13,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// GetReads returns a list of books you've read
+// GetReads returns a list of books a user has read
 func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 	c := h.contextFromRequest(r)
 	userctx := c.Value(model.ContextKeyAuthenticatedUser)
@@ -28,11 +28,11 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 	response := []dto.Book{}
 	h.db.Where("fk_user = ?", user.ID).Find(&reads)
 	for _, read := range reads {
-		log.Println(read.FKBook)
+		log.Println(read.BookID)
 		book := model.Book{}
-		h.db.Where("key = ?", fmt.Sprintf("/works/%s",read.FKBook)).First(&book)
+		h.db.Where("key = ?", fmt.Sprintf("/works/%s", read.BookID)).First(&book)
 		spew.Dump(book)
-		response = append(response, dto.Book{ID: book.Key,Title: book.Title})
+		response = append(response, dto.Book{ID: book.ID, Title: book.Title})
 	}
 	b, err := json.Marshal(response)
 	if err != nil {
@@ -61,8 +61,8 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 
 	user := userctx.(model.User)
 	book := model.Book{}
-	h.db.Where("key = ?", fmt.Sprintf("/works/%s",id)).First(&book)
-	if book.Key == "" {
+	h.db.Where("id = ?", fmt.Sprintf("/works/%s", id)).First(&book)
+	if book.ID == "" {
 		// fetch book from API
 		work, err := openlibrary.GetWorkByID(id)
 		if err != nil {
@@ -70,19 +70,31 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		book := model.NewBook(work.Key, work.Title, 0, "")
-		result := h.db.Create(book)
-		if result.Error != nil {
-			log.Println("Could not insert book into DB")
-			w.WriteHeader(http.StatusConflict)
-			return
-		}
+		log.Printf("%+v\n", work)
+		return
+
+		/*
+			book := model.NewBook(work.Key, work.Title, 0, "")
+			result := h.db.Create(book)
+			if result.Error != nil {
+				log.Println("Could not insert book into DB")
+				w.WriteHeader(http.StatusConflict)
+				return
+			}
+		*/
 	}
 
 	read := model.Read{
-		FKUser: user.ID,
-		FKBook: id,
+		UserID: user.ID,
+		User:   &user,
+		BookID: id,
+		Book:   &book,
 	}
 	h.db.Create(&read)
+
+	log.Printf("%+v", read)
+
+	//go h.ap.Federate(c, user, read)
+
 	w.WriteHeader(http.StatusCreated)
 }

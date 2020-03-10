@@ -9,10 +9,10 @@ import (
 
 	"github.com/exlibris-fed/exlibris/handler"
 	"github.com/exlibris-fed/exlibris/model"
-	"github.com/jinzhu/gorm"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
@@ -35,9 +35,11 @@ func main() {
 	defer db.Close()
 
 	db.AutoMigrate(model.Author{})
+	db.AutoMigrate(model.APObject{})
 	db.AutoMigrate(model.Book{})
 	db.AutoMigrate(model.BookAuthor{})
 	db.AutoMigrate(model.BookSubject{})
+	db.AutoMigrate(model.OutboxEntry{})
 	db.AutoMigrate(model.Read{})
 	db.AutoMigrate(model.Review{})
 	db.AutoMigrate(model.Subject{})
@@ -58,7 +60,7 @@ func main() {
 	api.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
 	api.HandleFunc("/@{username}/inbox", h.HandleInbox)
 	api.HandleFunc("/@{username}/outbox", h.HandleOutbox)
-	api.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
+	//api.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
 
 	// App
 	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)
@@ -68,7 +70,7 @@ func main() {
 	loggedRouter := handlers.LoggingHandler(os.Stdout, corsRouter(r))
 
 	addr := net.JoinHostPort(host, port)
-	log.Println("Starting on ", addr)
+	log.Println("Starting on", addr)
 
 	server := &http.Server{
 		Handler:      loggedRouter,

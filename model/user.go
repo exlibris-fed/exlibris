@@ -5,12 +5,15 @@ import (
 	"crypto/rsa"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/exlibris-fed/exlibris/key"
 
 	"github.com/dgrijalva/jwt-go"
+	"github.com/go-fed/activity/streams"
+	"github.com/go-fed/activity/streams/vocab"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -29,14 +32,16 @@ const (
 type User struct {
 	CreatedAt        time.Time
 	UpdatedAt        time.Time
-	DeletedAt        *time.Time        `sql:"index"`
-	ID               string            `gorm:"primary_key"`
-	Username         string            `gorm:"unique;not null;index"`
-	DisplayName      string            `gorm:"not null"`
-	Email            string            `gorm:"not null"`
-	Password         []byte            `gorm:"not null" json:"-"`
-	PrivateKey       []byte            `gorm:"not null" json:"-"`
+	DeletedAt        *time.Time `sql:"index"`
+	ID               string     `gorm:"primary_key"`
+	Username         string     `gorm:"unique;not null;index"`
+	DisplayName      string     `gorm:"not null"`
+	Email            string     `gorm:"not null"`
+	Password         []byte     `json:"-"`
+	PrivateKey       []byte     `json:"-"`
+	Summary          string
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
+	Local            bool              `json:"-"`
 }
 
 // NewUser creates a user and handles generating the ID, key and hashed password.
@@ -79,6 +84,36 @@ func (u *User) GenerateKeys() error {
 	}
 	u.PrivateKey = bytes
 	return nil
+}
+
+// IRI returns a url representing the user's profile
+func (u *User) IRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf("https://%s", u.ID))
+	if err != nil {
+		log.Printf("error creating IRI for user %s (%s): %s", u.ID, u.Username, err)
+		return nil
+	}
+	return URL
+}
+
+// OutboxIRI returns a url representing the user's outbox
+func (u *User) OutboxIRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf("https://%s/outbox", u.ID))
+	if err != nil {
+		log.Printf("error creating outbox IRI for user %s (%s): %s", u.ID, u.Username, err)
+		return nil
+	}
+	return URL
+}
+
+// InboxIRI returns a url representing the user's inbox
+func (u *User) InboxIRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf("https://%s/inbox", u.ID))
+	if err != nil {
+		log.Printf("error creating inbox IRI for user %s (%s): %s", u.ID, u.Username, err)
+		return nil
+	}
+	return URL
 }
 
 // IsPassword verifies that the specified password matches what's in the database.
@@ -132,4 +167,26 @@ func (u *User) ValidateJWT(t string) bool {
 		return false
 	}
 	return token.Valid
+}
+
+// ToType returns a representation of a user as an ActivityPub object.
+func (u *User) ToType() vocab.Type {
+	user := streams.NewActivityStreamsPerson()
+
+	URL, err := url.Parse(u.ID)
+	if err == nil {
+		id := streams.NewJSONLDIdProperty()
+		id.SetIRI(URL)
+		user.SetJSONLDId(id)
+	}
+
+	name := streams.NewActivityStreamsNameProperty()
+	name.AppendXMLSchemaString(u.DisplayName)
+	user.SetActivityStreamsName(name)
+
+	username := streams.NewActivityStreamsPreferredUsernameProperty()
+	username.SetXMLSchemaString(u.Username)
+	user.SetActivityStreamsPreferredUsername(username)
+
+	return user
 }
