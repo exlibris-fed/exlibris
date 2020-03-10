@@ -1,7 +1,7 @@
 <template>
   <div id="app">
     <div id="title">
-      <h1>Ex-Libris</h1>
+      <h1>{{ $t('title') }}</h1>
       <img
         src="../public/greek-column.svg"
         alt="greek pillar"
@@ -17,7 +17,14 @@
 
 <script>
 export default {
-  name: 'App'
+  name: 'App',
+  i18n: {
+    messages: {
+      en: {
+        title: 'exlibris'
+      }
+    }
+  }
 }
 </script>
 
