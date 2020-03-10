@@ -1,24 +1,35 @@
 <template>
-  <div id="container">
-    <div class="hello">
-      <h1>{{ $t('form.login') }}</h1>
-      <div v-if="errorMessage">
-        {{ errorMessage }}
-      </div>
-      <input
-        v-model="username"
-        type="text"
-        :placeholder="$t('form.username')"
-      >
-      <input
-        v-model="password"
-        type="password"
-        :placeholder="$t('form.password')"
-      >
-      <button @click="login()">
-        {{ $t('form.send' ) }}
-      </button>
+  <div id="login">
+    <h1>{{ $t('form.login') }}</h1>
+    <div v-if="errorMessage">
+      {{ errorMessage }}
     </div>
+    <form @submit="login">
+      <div>
+        <input
+          v-model="username"
+          type="text"
+          :placeholder="$t('form.username')"
+        >
+      </div>
+      <div>
+        <input
+          v-model="password"
+          type="password"
+          :placeholder="$t('form.password')"
+        >
+      </div>
+      <div>
+        <button @click="login()">
+          {{ $t('form.send' ) }}
+        </button>
+      </div>
+    </form>
+    <router-link
+      :to="{name: 'register'}"
+    >
+      {{ $t('register') }}
+    </router-link>
   </div>
 </template>
 
@@ -26,7 +37,7 @@
 import axios from 'axios'
 
 export default {
-  name: 'LoginPage',
+  name: 'LoginForm',
   props: {
     error: {
       type: String,
@@ -45,7 +56,8 @@ export default {
     }
   },
   methods: {
-    login () {
+    login (e) {
+      e.preventDefault()
       axios.post(process.env.VUE_APP_API_ORIGIN + '/authenticate', {
         username: this.username,
         password: this.password
@@ -78,6 +90,7 @@ export default {
           password: 'Password',
           send: 'Send'
         },
+        register: 'Register',
         errors: {
           badPassword: 'Invalid username/password combination'
         }
@@ -88,37 +101,28 @@ export default {
 </script>
 
 <style scoped>
-  h1, h2 {
-    text-align: center;
-    font-family: 'Literata';
-    font-weight: normal;
-  }
+h1, h2 {
+  text-align: center;
+  font-family: 'Literata';
+  font-weight: normal;
+}
 
-  ul {
-    list-style-type: none;
-    padding: 0;
-  }
+ul {
+  list-style-type: none;
+  padding: 0;
+}
 
-  li {
-    display: inline-block;
-    margin: 0 10px;
-  }
+li {
+  display: inline-block;
+  margin: 0 10px;
+}
 
-  a {
-    color: #42b983;
-  }
+a {
+  color: #42b983;
+}
 
-  textarea {
-    width: 600px;
-    height: 200px;
-  }
-
-  #container {
-    display: flex;
-    justify-content: center;
-  }
-
-  .hello {
-    justify-content: center;
-  }
+textarea {
+  width: 600px;
+  height: 200px;
+}
 </style>
