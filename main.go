@@ -63,6 +63,7 @@ func main() {
 	//api.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
 
 	// App
+	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
 	corsRouter := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedHeaders([]string{"Content-Type"}))

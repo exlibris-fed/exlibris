@@ -11,7 +11,7 @@
         {{ book.title }}
       </h5>
       <p class="card-text">
-        Author: {{ book.authors[0] }}
+        {{ $t('attribution') }} {{ book.authors[0] }}
       </p>
       <div class="buttons">
         <button
@@ -19,14 +19,14 @@
           type="button"
           class="btn btn-outline-success p-2"
         >
-          I've Read This
+          {{ $t('read') }}
         </button>
         <button
           valign="bottom"
           type="button"
           class="btn btn-outline-warning mt-auto p-2"
         >
-          Write A Review
+          {{ $t('review') }}
         </button>
       </div>
     </div>
@@ -36,6 +36,15 @@
 <script>
 export default {
   name: 'BookGridCard',
+  i18n: {
+    messages: {
+      en: {
+        attribution: 'By',
+        read: "I've Read This",
+        review: 'Write A Review'
+      }
+    }
+  },
   props: {
     book: {
       type: Object,
