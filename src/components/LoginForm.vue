@@ -45,7 +45,7 @@ export default {
     },
     bounceto: {
       type: String,
-      default: ''
+      default: '/'
     }
   },
   data () {
@@ -69,7 +69,7 @@ export default {
           }
           this.errorMessage = ''
           localStorage.setItem('auth', response.data.bearer)
-          this.$router.push(this.bounceto || '/')
+          this.$router.push(this.bounceto)
         })
         .catch(error => {
           if (error.response && error.response.status === 401) {

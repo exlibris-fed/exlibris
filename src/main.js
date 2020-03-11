@@ -5,6 +5,7 @@ import VueResource from 'vue-resource'
 import VueRouter from 'vue-router'
 import HomePage from './Views/Home.vue'
 import LoginPage from './Views/Login.vue'
+import LogoutPage from './Views/Logout.vue'
 import Register from './Views/Register.vue'
 
 Vue.use(VueI18n)
@@ -15,6 +16,7 @@ Vue.config.productionTip = false
 const routes = [
   { path: '/', component: HomePage, name: 'home' },
   { path: '/login', component: LoginPage, name: 'login' },
+  { path: '/logout', component: LogoutPage, name: 'logout' },
   { path: '/register', component: Register, name: 'register' }
 ]
 
