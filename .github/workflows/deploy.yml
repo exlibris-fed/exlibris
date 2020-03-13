@@ -15,7 +15,7 @@ jobs:
           fetch-depth: 1
 
       - name: build
-        run: docker build -t exlibrisfed/exlibris:latest
+        run: docker build -t exlibrisfed/exlibris:latest .
 
       - name: push to DockerHub
         uses: azure/docker-login@v1
