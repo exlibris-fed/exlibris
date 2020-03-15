@@ -9,24 +9,25 @@ import (
 	"github.com/davecgh/go-spew/spew"
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/exlibris/model"
-	"github.com/exlibris-fed/openlibrary-go"
-	"github.com/gorilla/mux"
+	//"github.com/exlibris-fed/openlibrary-go"
+	//"github.com/gorilla/mux"
 )
 
 // GetReads returns a list of books a user has read
 func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
-	c := h.contextFromRequest(r)
-	userctx := c.Value(model.ContextKeyAuthenticatedUser)
-	if userctx == nil {
-		log.Println("User is nil")
-		w.WriteHeader(http.StatusUnauthorized)
+	c := r.Context()
+	username, ok := c.Value(model.ContextKeyAuthenticatedUsername).(string)
+	if !ok {
+		// the middleware should have required this already
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
-	user := userctx.(model.User)
 	reads := []model.Read{}
 	response := []dto.Book{}
-	h.db.Where("fk_user = ?", user.ID).Find(&reads)
+	h.db.Joins("users on reads.fk_user=users.id").
+		Where("username = ?", username).
+		Find(&reads)
 	for _, read := range reads {
 		log.Println(read.BookID)
 		book := model.Book{}
@@ -49,52 +50,52 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		return
 	}
-	vars := mux.Vars(r)
-	id := vars["book"]
-	c := h.contextFromRequest(r)
-	userctx := c.Value(model.ContextKeyAuthenticatedUser)
-	if userctx == nil {
-		log.Println("User is nil")
-		w.WriteHeader(http.StatusUnauthorized)
-		return
-	}
-
-	user := userctx.(model.User)
-	book := model.Book{}
-	h.db.Where("id = ?", fmt.Sprintf("/works/%s", id)).First(&book)
-	if book.ID == "" {
-		// fetch book from API
-		work, err := openlibrary.GetWorkByID(id)
-		if err != nil {
-			log.Println("Could not fetch work", id, "got error", err)
+	w.WriteHeader(http.StatusNotImplemented)
+	/*
+		vars := mux.Vars(r)
+		id := vars["book"]
+		c := r.Context()
+		username, ok := c.Value(model.ContextKeyAuthenticatedUsername).(string)
+		if !ok {
+			// the middleware should have required this already
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		log.Printf("%+v\n", work)
-		return
 
-		/*
-			book := model.NewBook(work.Key, work.Title, 0, "")
-			result := h.db.Create(book)
-			if result.Error != nil {
-				log.Println("Could not insert book into DB")
-				w.WriteHeader(http.StatusConflict)
+		book := model.Book{}
+		h.db.Where("id = ?", fmt.Sprintf("/works/%s", id)).First(&book)
+		if book.ID == "" {
+			// fetch book from API
+			work, err := openlibrary.GetWorkByID(id)
+			if err != nil {
+				log.Println("Could not fetch work", id, "got error", err)
+				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-		*/
-	}
+			log.Printf("%+v\n", work)
+			return
 
-	read := model.Read{
-		UserID: user.ID,
-		User:   &user,
-		BookID: id,
-		Book:   &book,
-	}
-	h.db.Create(&read)
+				book := model.NewBook(work.Key, work.Title, 0, "")
+				result := h.db.Create(book)
+				if result.Error != nil {
+					log.Println("Could not insert book into DB")
+					w.WriteHeader(http.StatusConflict)
+					return
+				}
+		}
 
-	log.Printf("%+v", read)
+		read := model.Read{
+			UserID: user.ID,
+			User:   &user,
+			BookID: id,
+			Book:   &book,
+		}
+		h.db.Create(&read)
 
-	//go h.ap.Federate(c, user, read)
+		log.Printf("%+v", read)
 
-	w.WriteHeader(http.StatusCreated)
+		//go h.ap.Federate(c, user, read)
+
+		w.WriteHeader(http.StatusCreated)
+	*/
 }
