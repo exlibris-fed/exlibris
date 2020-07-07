@@ -21,6 +21,8 @@ export default {
     if (!this.authToken) {
       this.$router.push({ name: 'login', props: { error: 'Log in to view this page' } })
     }
+    console.log('process.env is:')
+    console.log(process.env)
     this.axiosInstance = axios.create({
       baseURL: process.env.VUE_APP_API_ORIGIN,
       headers: {
