@@ -1,17 +1,19 @@
 <template>
-  <div id="app">
-    <div id="seachbar">
-      <SearchBar @termChange="onTermChange" />
-    </div>
-    <div id="discover">
-      <h2>{{ $t('callToAction') }}</h2>
-    </div>
-    <div id="bookgrid-container">
-      <BookGrid
-        :books="books"
-        @read="read"
-      />
-    </div>
+  <div>
+    <b-row>
+      <b-col>
+        <SearchBar @termChange="onTermChange" />
+      </b-col>
+    </b-row>
+    <b-row>
+      <b-col>
+        <h2>{{ $t('callToAction') }}</h2>
+      </b-col>
+    </b-row>
+    <BookGrid
+      :books="books"
+      @read="read"
+    />
   </div>
 </template>
 
@@ -61,37 +63,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-#title {
-  margin: 20px;
-  display: flex;
-  justify-content: center;
-}
-
-#seachbar {
-  display: flex;
-  justify-content: center;
-}
-
-BookGird {
-  display: grid;
-}
-
-h1 {
-  margin: 5px;
-  font-family: 'Literata';
-}
-
-h2 {
-  margin: 5px;
-  font-family: 'Literata';
-  text-align: center;
-}
-
-img {
-  margin: 5px;
-}
-
-</style>

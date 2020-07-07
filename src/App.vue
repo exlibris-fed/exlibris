@@ -1,18 +1,21 @@
 <template>
-  <div id="app">
-    <div id="title">
-      <h1>{{ $t('title') }}</h1>
-      <img
-        src="../public/greek-column.svg"
-        alt="greek pillar"
-        height="50"
-        width="50"
-      >
-    </div>
-    <div id="renderBox">
-      <router-view />
-    </div>
-  </div>
+  <b-container id="app">
+    <b-row align-h="center">
+      <b-col cols="1">
+        <img
+          class="text-right"
+          src="../public/greek-column.svg"
+          alt="greek pillar"
+          height="50"
+          width="50"
+        >
+      </b-col>
+      <b-col>
+        <h1>{{ $t('title') }}</h1>
+      </b-col>
+    </b-row>
+    <router-view />
+  </b-container>
 </template>
 
 <script>
@@ -27,16 +30,3 @@ export default {
   }
 }
 </script>
-
-<style>
-#app {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-h1 {
-  text-align: center;
-}
-
-</style>
