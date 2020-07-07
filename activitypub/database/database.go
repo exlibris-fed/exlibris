@@ -158,11 +158,13 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 	// TODO
 	pieces := regexpID.FindStringSubmatch(id.String())
 	var object model.APObject
-	d.DB.First(&object, "id = ?", pieces[2])
+	// @TODO code wanted read but never used it, this will preload based on relationship
+	d.DB.Preload("Read").First(&object, "id = ?", pieces[2])
 
 	// this could be better
-	var read model.Read
-	d.DB.First(&read, "id = ?", object.ReadID)
+	// @TODO: read was never used
+	// var read model.Read
+	// d.DB.First(&read, "id = ?", object.FKRead)
 
 	book := streams.NewActivityStreamsRead()
 	userIRI, err := url.Parse("https://" + pieces[1])
@@ -295,10 +297,14 @@ func (d *Database) SetOutbox(c context.Context, inbox vocab.ActivityStreamsOrder
 	pieces := regexpOutbox.FindStringSubmatch(id.(string))
 
 	for item := items.Begin(); item != items.End(); item = item.Next() {
+		id, err := uuid.Parse(pieces[1])
+		if err != nil {
+			return err
+		}
 		// TODO can you try to set things you didn't write? probably!
 		resp := d.DB.Create(&model.OutboxEntry{
 			Serialized: item.GetIRI().String(),
-			UserID:     pieces[1],
+			User:       model.User{Base: model.Base{ID: id}},
 		})
 		if resp.Error != nil {
 			return resp.Error
