@@ -15,7 +15,6 @@
 <script>
 import SearchBar from '../components/SearchBar.vue'
 import BookGrid from '../components/BookGrid.vue'
-import axios from 'axios'
 
 export default {
   name: 'HomePage',
@@ -24,8 +23,8 @@ export default {
     BookGrid
   },
   props: {
-    authToken: {
-      type: String,
+    axios: {
+      type: Object,
       required: true
     }
   },
@@ -34,13 +33,9 @@ export default {
   },
   methods: {
     onTermChange (searchTerm) {
-      axios.get(process.env.VUE_APP_API_ORIGIN + '/book', {
+      this.axios.get('/book', {
         params: {
           title: searchTerm
-        },
-        headers: {
-          Authorization: 'Bearer ' + this.authToken,
-          'Access-Control-Allow-Origin': '*'
         }
       }).then(response => {
         this.books = response.data
