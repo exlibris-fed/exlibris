@@ -18,6 +18,7 @@ type Federater interface {
 
 // Base set of attributes for a model
 type Base struct {
+	BaseEvents
 	ID uuid.UUID `gorm:"primary_key"`
 }
 
