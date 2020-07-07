@@ -76,7 +76,7 @@ func main() {
 	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
 	corsRouter := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
-		handlers.AllowedHeaders([]string{"Content-Type"}))
+		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Access-Control-Allow-Origin"}))
 	loggedRouter := handlers.LoggingHandler(os.Stdout, corsRouter(r))
 
 	addr := net.JoinHostPort(host, port)

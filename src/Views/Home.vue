@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Home />
+    <Home :auth-token="authToken" />
   </div>
 </template>
 
