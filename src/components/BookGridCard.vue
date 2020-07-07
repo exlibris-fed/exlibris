@@ -18,6 +18,7 @@
           valign="bottom"
           type="button"
           class="btn btn-outline-success p-2"
+          @click="readBook"
         >
           {{ $t('read') }}
         </button>
@@ -49,6 +50,11 @@ export default {
     book: {
       type: Object,
       required: true
+    }
+  },
+  methods: {
+    readBook: function () {
+      this.$emit('read', this.book)
     }
   }
 }

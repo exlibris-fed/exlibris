@@ -7,7 +7,10 @@
       <h2>{{ $t('callToAction') }}</h2>
     </div>
     <div id="bookgrid-container">
-      <BookGrid :books="books" />
+      <BookGrid
+        :books="books"
+        @read="read"
+      />
     </div>
   </div>
 </template>
@@ -24,7 +27,7 @@ export default {
   },
   props: {
     axios: {
-      type: Object,
+      type: Function,
       required: true
     }
   },
@@ -40,6 +43,13 @@ export default {
       }).then(response => {
         this.books = response.data
       })
+    },
+
+    read (book) {
+      const id = book.id.split('/')[1]
+      this.axios.post('/book/' + id + '/read')
+        .then(r => console.log(r)) // TODO
+        .error(r => console.error(r)) // also TODO
     }
   },
   i18n: {
