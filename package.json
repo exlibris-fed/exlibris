@@ -18,11 +18,14 @@
     "vue-router": "^3.1.6"
   },
   "devDependencies": {
-    "@babel/compat-data": "^7.10.4",
+    "@babel/compat-data": "^7.8.0",
+    "@babel/core": "^7.10.4",
+    "@babel/preset-env": "^7.10.4",
     "@vue/cli-plugin-babel": "^4.2.0",
     "@vue/cli-plugin-eslint": "^4.2.0",
     "@vue/cli-service": "^4.2.0",
     "babel-eslint": "^10.0.3",
+    "babel-loader": "^8.1.0",
     "eslint": "^6.8.0",
     "eslint-plugin-vue": "^6.1.2",
     "eslint-plugin-vue-i18n": "^0.3.0",
