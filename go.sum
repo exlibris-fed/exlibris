@@ -22,6 +22,8 @@ github.com/exlibris-fed/openlibrary-go v0.3.0 h1:HCmmsbSCFda8Iy6c0nd8gKU0R7sHE9C
 github.com/exlibris-fed/openlibrary-go v0.3.0/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/exlibris-fed/openlibrary-go v0.3.3 h1:JjKdQoRJpbvamR4adI7L6M6ta1Jtve9IaPTj07IYVBU=
 github.com/exlibris-fed/openlibrary-go v0.3.3/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
+github.com/exlibris-fed/openlibrary-go v0.3.4 h1:dHjf4vYxBxIvMd+d5JVlbYKNf6I4dHgXB+2XFS52JSg=
+github.com/exlibris-fed/openlibrary-go v0.3.4/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/githubnemo/CompileDaemon v1.0.0 h1:F4nrVyPOxva6gJIw320fwfaFaPl8ZuEk95RZOy9Q4eM=
