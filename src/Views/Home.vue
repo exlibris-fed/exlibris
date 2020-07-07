@@ -1,7 +1,5 @@
 <template>
-  <div id="app">
-    <Home :axios="axiosInstance" />
-  </div>
+  <Home :axios="axiosInstance" />
 </template>
 
 <script>

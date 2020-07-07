@@ -1,17 +1,12 @@
 <template>
-  <div class="container-fluid">
-    <div
-      id="grid-wrapper"
-      class="row row-cols-6"
-    >
-      <BookGridCard
-        v-for="book in books"
-        :key="book.id"
-        :book="book"
-        @read="readBook"
-      />
-    </div>
-  </div>
+  <b-row>
+    <BookGridCard
+      v-for="book in books"
+      :key="book.id"
+      :book="book"
+      @read="readBook"
+    />
+  </b-row>
 </template>
 
 <script>

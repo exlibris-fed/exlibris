@@ -1,37 +1,22 @@
 <template>
-  <div class="card">
-    <img
-      id="book-cover"
-      :src="book.covers.medium"
-      alt="../public/greek-column.svg"
-      class="card-img-top p-4"
+  <b-col
+    cols="12"
+    md="3"
+  >
+    <b-card
+      :title="book.title"
+      :img-src="coverimage"
     >
-    <div class="card-body d-flex flex-column">
-      <h5 class="card-title">
-        {{ book.title }}
-      </h5>
-      <p class="card-text">
+      <b-card-text>
         {{ $t('attribution') }} {{ book.authors[0] }}
-      </p>
-      <div class="buttons">
-        <button
-          valign="bottom"
-          type="button"
-          class="btn btn-outline-success p-2"
-          @click="readBook"
-        >
-          {{ $t('read') }}
-        </button>
-        <button
-          valign="bottom"
-          type="button"
-          class="btn btn-outline-warning mt-auto p-2"
-        >
-          {{ $t('review') }}
-        </button>
-      </div>
-    </div>
-  </div>
+      </b-card-text>
+      <b-button
+        @click="readBook"
+      >
+        {{ $t('read') }}
+      </b-button>
+    </b-card>
+  </b-col>
 </template>
 
 <script>
@@ -52,6 +37,11 @@ export default {
       required: true
     }
   },
+  computed: {
+    coverimage: function () {
+      return this.book.covers.large || this.book.covers.medium || this.book.covers.small
+    }
+  },
   methods: {
     readBook: function () {
       this.$emit('read', this.book)
@@ -59,58 +49,3 @@ export default {
   }
 }
 </script>
-
-<style>
-.card {
-  --width: 100%;
-  --time: 0.7s;
-  display: flex;
-  flex-direction: column;
-  flex: 0 1 calc(25% - 1em);
-  margin: 1rem .25em;
-
-  color: white;
-  background: #222;
-  transition: ease-in .4s;
-  animation-duration: 3s;
-}
-
-.card:hover {
-  -webkit-filter: drop-shadow(0 20px 20px  rgba(0, 0, 0, 0.70));
-  filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.70));
-  box-shadow: none;
-  color: #222;
-  background: #999;
-}
-
-.card-body {
-  display: flex;
-  flex-direction: column;
-  margin-bottom: auto;
-}
-
-.card-text {
-  margin-bottom: 0px;
-}
-
-.buttons {
-  display: flex;
-  flex-direction: column;
-  margin-top: auto;
-}
-
-button {
-  margin-top: auto;
-  margin-bottom: 3px;
-}
-
-#book-cover {
-  margin: 0px;
-  border: solid;
-  border-color: white;
-}
-
-btn-outline-success:focus {
-  color: green;
-}
-</style>
