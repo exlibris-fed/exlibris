@@ -177,6 +177,7 @@ func (ap *ActivityPub) signer(headers []string) httpsig.Signer {
 		httpsig.DigestSha256,
 		headers,
 		httpsig.Authorization,
+		60,
 	)
 	if err != nil {
 		log.Println("error creating signer: " + err.Error())
