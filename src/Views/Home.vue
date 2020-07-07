@@ -1,11 +1,12 @@
 <template>
   <div id="app">
-    <Home :auth-token="authToken" />
+    <Home :axios="axiosInstance" />
   </div>
 </template>
 
 <script>
 import Home from '../components/Home.vue'
+import axios from 'axios'
 
 export default {
   name: 'HomePage',
@@ -14,7 +15,13 @@ export default {
   },
   data: function () {
     return {
-      authToken: localStorage.getItem('auth')
+      authToken: localStorage.getItem('auth'),
+      axiosInstance: axios.create({
+        baseURL: process.env.VUE_APP_API_ORIGIN,
+        headers: {
+          Authorization: 'Bearer ' + localStorage.getItem('auth')
+        }
+      })
     }
   },
   created: function () {
