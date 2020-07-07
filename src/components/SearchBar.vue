@@ -9,9 +9,18 @@
 <script>
 export default {
   name: 'SearchBar',
+  data () {
+    return { timer: null }
+  },
   methods: {
     onInput: function (search) {
-      this.$emit('termChange', search)
+      if (this.timer) {
+        clearTimeout(this.timer)
+        this.timer = null
+      }
+      this.timer = setTimeout(() => {
+        this.$emit('termChange', search)
+      }, 800)
     }
   },
   i18n: {
@@ -27,7 +36,7 @@ export default {
 <style>
 input {
   text-align: center;
-  transition: .5s ease-in-out;
+  transition: 0.5s ease-in-out;
 }
 
 input:focus {
