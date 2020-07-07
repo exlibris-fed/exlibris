@@ -75,7 +75,7 @@ func (ap *ActivityPub) Federate(c context.Context, user model.User, f model.Fede
 // authenticated must be true and error nil. The request will continue
 // to be processed.
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-	authenticatedUser, ok := c.Value(model.ContextKeyAuthenticatedUser).(model.User)
+	username, ok := c.Value(model.ContextKeyAuthenticatedUsername).(string)
 	if !ok {
 		return c, false, nil
 	}
@@ -84,7 +84,7 @@ func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWr
 	if !ok {
 		return c, false, nil
 	}
-	return c, authenticatedUser.Username == requestedUser, nil
+	return c, username == requestedUser, nil
 }
 
 // AuthenticateGetOutbox delegates the authentication of a GET to an

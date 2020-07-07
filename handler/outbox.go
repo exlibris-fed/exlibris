@@ -9,7 +9,7 @@ func (h *Handler) HandleOutbox(w http.ResponseWriter, r *http.Request) {
 	log.Printf("handlin outbox")
 	actor := h.ap.NewFederatingActor()
 
-	c := h.contextFromRequest(r)
+	c := r.Context()
 
 	// Populate c with request-specific information
 	if handled, err := actor.PostOutbox(c, w, r); err != nil {

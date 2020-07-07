@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"github.com/exlibris-fed/exlibris/handler"
+	"github.com/exlibris-fed/exlibris/handler/middleware"
 	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/gorilla/handlers"
@@ -28,6 +29,9 @@ func main() {
 	if os.Getenv("DOMAIN") == "" {
 		log.Fatalf("DOMAIN not provided")
 	}
+	if os.Getenv("SECRET") == "" {
+		log.Fatalf("SECRET not provided")
+	}
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatalf("unable to connect to database: %s", err)
@@ -46,21 +50,27 @@ func main() {
 	db.AutoMigrate(model.User{})
 
 	h := handler.New(db)
+	m := middleware.New(db)
 
 	r := mux.NewRouter()
+	r.Use(m.ExtractUsername)
 
 	// APIs
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
 	api.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
-	api.HandleFunc("/book", h.SearchBooks)
-	api.HandleFunc("/book/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
-	api.HandleFunc("/book/read", h.GetReads)
-	api.HandleFunc("/user/{username}/inbox", h.HandleInbox)
-	api.HandleFunc("/user/{username}/outbox", h.HandleOutbox)
-	api.HandleFunc("/@{username}/inbox", h.HandleInbox)
-	api.HandleFunc("/@{username}/outbox", h.HandleOutbox)
-	//api.HandleFunc("/fedtest", h.FederationTest).Methods(http.MethodPost, http.MethodOptions)
+
+	books := api.PathPrefix("/book").Subrouter()
+	books.Use(m.Authenticated)
+	books.HandleFunc("", h.SearchBooks)
+	books.HandleFunc("/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
+	books.HandleFunc("/read", h.GetReads)
+
+	// inbox/outbox handle authentication as part of the go-fed flow. ExtractUsername will populate it if present.
+	api.Handle("/user/{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
+	api.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
+	api.Handle("/@{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
+	api.Handle("/@{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
 
 	// App
 	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)

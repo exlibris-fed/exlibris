@@ -2,7 +2,6 @@ package model
 
 import (
 	"crypto"
-	"crypto/rsa"
 	"fmt"
 	"log"
 	"net/url"
@@ -20,6 +19,9 @@ import (
 const (
 	// ContextKeyRequestedUser  is the key to use for the username of the endpoint being requested.
 	ContextKeyRequestedUser ContextKey = "username"
+
+	// ContextKeyAuthenticatedUsername is the key to use for a username that was retrieved and validated from the Authorization header. It should not be set until the header has been verified.
+	ContextKeyAuthenticatedUsername ContextKey = "authusername"
 
 	// ContextKeyAuthenticatedUser is the key to use for a User object that was retrieved from a JWT. It should not be set until the JWT has been verified as being signed by the user specified in the `kid` field.
 	ContextKeyAuthenticatedUser ContextKey = "authuser"
@@ -133,40 +135,15 @@ func (u *User) ensureCryptoPrivateKey() {
 
 // GenerateJWT generates a JWT for the user.
 func (u *User) GenerateJWT() (string, error) {
-	u.ensureCryptoPrivateKey()
-	token := jwt.NewWithClaims(jwt.SigningMethodRS256, jwt.MapClaims{
-		"kid": u.Username, // TODO should we be generating urls as an ID?
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+		"kid":     u.Username, // TODO should we be generating urls as an ID?
+		"created": time.Now(), //.Unix,
 	})
-	t, err := token.SignedString(u.CryptoPrivateKey)
+	t, err := token.SignedString([]byte(os.Getenv("SECRET")))
 	if err != nil {
 		return "", err
 	}
 	return t, nil
-}
-
-// ValidateJWT accepts a JWT and private key and verifies the token was signed by the key.
-func (u *User) ValidateJWT(t string) bool {
-	u.ensureCryptoPrivateKey()
-	if u.CryptoPrivateKey == nil {
-		// this may not be a user persisted in the database
-		return false
-	}
-
-	token, err := jwt.Parse(t, func(token *jwt.Token) (interface{}, error) {
-		if _, ok := token.Method.(*jwt.SigningMethodRSA); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", token.Header["alg"])
-		}
-		pk, ok := u.CryptoPrivateKey.(*rsa.PrivateKey)
-		if !ok {
-			return nil, fmt.Errorf("private key is %T, not *rsa.PrivateKey", u.CryptoPrivateKey)
-		}
-		return &pk.PublicKey, nil
-	})
-	if err != nil {
-		log.Println("error validating JWT: " + err.Error())
-		return false
-	}
-	return token.Valid
 }
 
 // ToType returns a representation of a user as an ActivityPub object.
