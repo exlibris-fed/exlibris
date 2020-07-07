@@ -57,7 +57,7 @@ export default {
   },
   methods: {
     login (e) {
-      e.preventDefault()
+      e && e.preventDefault()
       axios.post(process.env.VUE_APP_API_ORIGIN + '/authenticate', {
         username: this.username,
         password: this.password
