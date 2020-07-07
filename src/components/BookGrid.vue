@@ -8,6 +8,7 @@
         v-for="book in books"
         :key="book.id"
         :book="book"
+        @read="readBook"
       />
     </div>
   </div>
@@ -25,6 +26,11 @@ export default {
     books: {
       type: Array,
       required: true
+    }
+  },
+  methods: {
+    readBook: function (book) {
+      this.$emit('read', book)
     }
   }
 }
