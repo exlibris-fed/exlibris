@@ -7,26 +7,25 @@ import (
 
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
-	"github.com/jinzhu/gorm"
 )
 
 // A Book is something that can be read. Currently this only supports things which are in the Library of Congress API, but eventually it'd be great to support fanfiction and other online-only sources.
 type Book struct {
-	ID        string   `gorm:"primary_key" json:"id"`
-	Title     string   `gorm:"not null;index" json:"title"`
-	Published int      `json:"published,omitempty"`
-	ISBN      string   `json:"isbn,omitempty"`
-	Authors   []Author `gorm:"-"`
-	db        *gorm.DB
+	Base
+	OpenLibraryID string `gorm:"unique;not null" json:"open_library_id"`
+	Title         string `gorm:"not null;index" json:"title"`
+	Published     int    `json:"published,omitempty"`
+	ISBN          string `json:"isbn,omitempty"`
+	Authors       []Author
 }
 
 // NewBook returns a new instance of a book
 func NewBook(id string, title string, published int, isbn string) *Book {
 	return &Book{
-		ID:        id,
-		Title:     title,
-		Published: published,
-		ISBN:      isbn,
+		OpenLibraryID: id,
+		Title:         title,
+		Published:     published,
+		ISBN:          isbn,
 	}
 }
 
@@ -34,7 +33,7 @@ func NewBook(id string, title string, published int, isbn string) *Book {
 func (b *Book) ToType() vocab.Type {
 	book := streams.NewActivityStreamsDocument()
 
-	u, err := url.Parse(fmt.Sprintf("https://openlibrary.org/works/%s/", b.ID))
+	u, err := url.Parse(fmt.Sprintf("https://openlibrary.org/works/%s/", b.OpenLibraryID))
 	if err == nil {
 		id := streams.NewJSONLDIdProperty()
 		id.SetIRI(u)

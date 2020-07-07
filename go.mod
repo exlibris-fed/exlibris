@@ -1,6 +1,6 @@
 module github.com/exlibris-fed/exlibris
 
-go 1.12
+go 1.14
 
 require (
 	github.com/davecgh/go-spew v1.1.1

@@ -13,6 +13,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/google/uuid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -32,15 +33,13 @@ const (
 
 // A User is a person interacting with the app. They may not be registered on this server.
 type User struct {
-	CreatedAt        time.Time
-	UpdatedAt        time.Time
-	DeletedAt        *time.Time `sql:"index"`
-	ID               string     `gorm:"primary_key"`
-	Username         string     `gorm:"unique;not null;index"`
-	DisplayName      string     `gorm:"not null"`
-	Email            string     `gorm:"not null"`
-	Password         []byte     `json:"-"`
-	PrivateKey       []byte     `json:"-"`
+	Base
+	HumanID          string `gorm:"unique;not null;index"`
+	Username         string `gorm:"unique;not null;index"`
+	DisplayName      string `gorm:"not null"`
+	Email            string `gorm:"not null"`
+	Password         []byte `json:"-"`
+	PrivateKey       []byte `json:"-"`
 	Summary          string
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
 	Local            bool              `json:"-"`
@@ -54,7 +53,10 @@ func NewUser(username, password, email, displayName string) (*User, error) {
 	}
 
 	u := User{
-		ID:          fmt.Sprintf("%s/@%s", domain, username),
+		Base: Base{
+			ID: uuid.New(),
+		},
+		HumanID:     fmt.Sprintf("%s/@%s", domain, username),
 		Username:    username,
 		Email:       email,
 		DisplayName: displayName,
@@ -90,7 +92,7 @@ func (u *User) GenerateKeys() error {
 
 // IRI returns a url representing the user's profile
 func (u *User) IRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s", u.ID))
+	URL, err := url.Parse(fmt.Sprintf("https://%s", u.HumanID))
 	if err != nil {
 		log.Printf("error creating IRI for user %s (%s): %s", u.ID, u.Username, err)
 		return nil
@@ -100,7 +102,7 @@ func (u *User) IRI() *url.URL {
 
 // OutboxIRI returns a url representing the user's outbox
 func (u *User) OutboxIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/outbox", u.ID))
+	URL, err := url.Parse(fmt.Sprintf("https://%s/outbox", u.HumanID))
 	if err != nil {
 		log.Printf("error creating outbox IRI for user %s (%s): %s", u.ID, u.Username, err)
 		return nil
@@ -110,9 +112,9 @@ func (u *User) OutboxIRI() *url.URL {
 
 // InboxIRI returns a url representing the user's inbox
 func (u *User) InboxIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/inbox", u.ID))
+	URL, err := url.Parse(fmt.Sprintf("https://%s/inbox", u.HumanID))
 	if err != nil {
-		log.Printf("error creating inbox IRI for user %s (%s): %s", u.ID, u.Username, err)
+		log.Printf("error creating inbox IRI for user %s (%s): %s", u.HumanID, u.Username, err)
 		return nil
 	}
 	return URL
@@ -150,7 +152,7 @@ func (u *User) GenerateJWT() (string, error) {
 func (u *User) ToType() vocab.Type {
 	user := streams.NewActivityStreamsPerson()
 
-	URL, err := url.Parse(u.ID)
+	URL, err := url.Parse(u.HumanID)
 	if err == nil {
 		id := streams.NewJSONLDIdProperty()
 		id.SetIRI(URL)

@@ -2,11 +2,9 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 
-	"github.com/davecgh/go-spew/spew"
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/exlibris/model"
 	//"github.com/exlibris-fed/openlibrary-go"
@@ -25,15 +23,13 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 
 	reads := []model.Read{}
 	response := []dto.Book{}
-	h.db.Joins("users on reads.fk_user=users.id").
+	h.db.Preload("User").
+		Preload("Book").
 		Where("username = ?", username).
 		Find(&reads)
 	for _, read := range reads {
-		log.Println(read.BookID)
-		book := model.Book{}
-		h.db.Where("key = ?", fmt.Sprintf("/works/%s", read.BookID)).First(&book)
-		spew.Dump(book)
-		response = append(response, dto.Book{ID: book.ID, Title: book.Title})
+		log.Println(read.Book)
+		response = append(response, dto.Book{ID: read.Book.OpenLibraryID, Title: read.Book.Title})
 	}
 	b, err := json.Marshal(response)
 	if err != nil {
