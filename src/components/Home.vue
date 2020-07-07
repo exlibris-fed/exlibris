@@ -23,6 +23,12 @@ export default {
     SearchBar,
     BookGrid
   },
+  props: {
+    authToken: {
+      type: String,
+      required: true
+    }
+  },
   data () {
     return { books: [] }
   },
@@ -31,6 +37,10 @@ export default {
       axios.get(process.env.VUE_APP_API_ORIGIN + '/book', {
         params: {
           title: searchTerm
+        },
+        headers: {
+          Authorization: 'Bearer ' + this.authToken,
+          'Access-Control-Allow-Origin': '*'
         }
       }).then(response => {
         this.books = response.data
