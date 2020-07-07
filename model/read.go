@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/google/uuid"
 )
 
 const (
@@ -16,8 +17,10 @@ const (
 // Read is a many to many model describing a user who read a book. Because GORM does weird things with foreign keys we need to do it manually, unfortunately.
 type Read struct {
 	Base
-	Book Book
-	User User
+	Book   Book
+	BookID uuid.UUID
+	User   User
+	UserID uuid.UUID
 }
 
 // ToType returns a representation of a read activity as an ActivityPub object.
