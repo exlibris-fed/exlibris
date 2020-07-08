@@ -63,7 +63,9 @@ func NewUser(username, password, email, displayName string) (*User, error) {
 		DisplayName: displayName,
 	}
 	u.SetPassword(password)
-	u.GenerateKeys()
+	if err := u.GenerateKeys(); err != nil {
+		return nil, err
+	}
 	return &u, nil
 }
 

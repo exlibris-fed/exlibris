@@ -9,6 +9,7 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
+	"fmt"
 )
 
 const (
@@ -22,10 +23,19 @@ func New() (k *rsa.PrivateKey, err error) {
 	return
 }
 
-// NewOfSIze creates an RSA private key of a specified size.
+// NewOfSize creates an RSA private key of a specified size.
 func NewOfSize(n int) (k *rsa.PrivateKey, err error) {
 	k, err = rsa.GenerateKey(rand.Reader, n)
 	return
+}
+
+// TODO
+func MarshalPublicKeyFromPrivateKey(pk crypto.PublicKey) (string, error) {
+	rsaPK, ok := pk.(*rsa.PrivateKey)
+	if !ok {
+		return "", fmt.Errorf("private key is not RSA")
+	}
+	return MarshalPublicKey(&rsaPK.PublicKey)
 }
 
 // MarshalPublicKey takes a public key and returns its string representation.
