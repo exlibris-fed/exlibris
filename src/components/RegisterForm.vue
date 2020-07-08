@@ -4,53 +4,67 @@
     <div v-if="error">
       {{ error }}
     </div>
-    <form @submit="register">
-      <div>
-        <input
+    <b-form @submit="register">
+      <b-form-group
+        id="username-group"
+        :label="$t('form.username')"
+        label-for="username"
+      >
+        <b-form-input
+          id="username"
           v-model="username"
           type="text"
           required
-          :placeholder="$t('form.username')"
-        >
-      </div>
-      <div>
-        <input
+        />
+      </b-form-group>
+      <b-form-group
+        id="password-group"
+        :label="$t('form.password')"
+        label-for="password"
+      >
+        <b-form-input
           v-model="password"
           type="password"
           required
-          :placeholder="$t('form.password')"
-        >
-      </div>
-      <div>
-        <input
+        />
+      </b-form-group>
+      <b-form-group
+        id="password-confirm-group"
+        :label="$t('form.confirmPassword')"
+        label-for="password-confirm"
+      >
+        <b-form-input
           v-model="confirmPassword"
           type="password"
           required
-          :placeholder="$t('form.confirmPassword')"
-        >
-      </div>
-      <div>
-        <input
+        />
+      </b-form-group>
+      <b-form-group
+        id="email-group"
+        :label="$t('form.email')"
+        label-for="email"
+      >
+        <b-form-input
           v-model="email"
           type="email"
           required
-          :placeholder="$t('form.email')"
-        >
-      </div>
-      <div>
-        <input
+        />
+      </b-form-group>
+      <b-form-group
+        id="display-name-group"
+        :label="$t('form.displayName')"
+        label-for="display-name"
+      >
+        <b-form-input
           v-model="displayName"
           type="text"
           required
-          :placeholder="$t('form.displayName')"
-        >
-      </div>
-      <div>
-        <button type="submit">
-          {{ $t('form.send' ) }}
-        </button>
-      </div>
-    </form>
+        />
+      </b-form-group>
+      <b-button type="submit">
+        {{ $t('form.send' ) }}
+      </b-button>
+    </b-form>
   </div>
 </template>
 
@@ -130,30 +144,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-h1, h2 {
-  text-align: center;
-  font-family: 'Literata';
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
-
-textarea {
-  width: 600px;
-  height: 200px;
-}
-</style>

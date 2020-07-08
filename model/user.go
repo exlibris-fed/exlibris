@@ -43,6 +43,7 @@ type User struct {
 	Summary          string
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
 	Local            bool              `json:"-"`
+	Verified         bool              `json:"-"`
 }
 
 // NewUser creates a user and handles generating the ID, key and hashed password.
