@@ -11,6 +11,7 @@ import HomePage from './Views/Home.vue'
 import LoginPage from './Views/Login.vue'
 import LogoutPage from './Views/Logout.vue'
 import Register from './Views/Register.vue'
+import Verify from './Views/Verify.vue'
 
 Vue.use(VueI18n)
 Vue.use(VueRouter)
@@ -23,7 +24,8 @@ const routes = [
   { path: '/', component: HomePage, name: 'home' },
   { path: '/login', component: LoginPage, name: 'login' },
   { path: '/logout', component: LogoutPage, name: 'logout' },
-  { path: '/register', component: Register, name: 'register' }
+  { path: '/register', component: Register, name: 'register' },
+  { path: '/verify/:key', component: Verify, name: 'verify' }
 ]
 
 const router = new VueRouter({

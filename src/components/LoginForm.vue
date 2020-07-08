@@ -1,35 +1,69 @@
 <template>
   <div id="login">
     <h1>{{ $t('form.login') }}</h1>
-    <div v-if="errorMessage">
+    <b-alert
+      v-if="errorMessage"
+      show
+      variant="danger"
+    >
       {{ errorMessage }}
-    </div>
-    <form @submit="login">
-      <div>
-        <input
+    </b-alert>
+    <b-row
+      class="mb-3"
+    >
+      <b-form
+        class="col"
+        inline
+        @submit="login"
+      >
+        <label
+          class="sr-only"
+          for="username"
+        >
+          {{ $t('form.username') }}
+        </label>
+        <b-input
+          id="username"
           v-model="username"
           type="text"
+          class="mb-2 mr-sm-2 mb-sm-0"
           :placeholder="$t('form.username')"
+          required
+        />
+
+        <label
+          class="sr-only"
+          for="password"
         >
-      </div>
-      <div>
-        <input
+          {{ $t('form.password') }}
+        </label>
+        <b-form-input
+          id="password"
           v-model="password"
           type="password"
+          class="mb-2 mr-sm-2 mb-sm-0"
           :placeholder="$t('form.password')"
+          required
+        />
+
+        <b-button
+          type="submit"
+          class="mb-2 mr-sm-2 mb-sm-0"
         >
-      </div>
-      <div>
-        <button @click="login()">
           {{ $t('form.send' ) }}
-        </button>
-      </div>
-    </form>
-    <router-link
-      :to="{name: 'register'}"
-    >
-      {{ $t('register') }}
-    </router-link>
+        </b-button>
+      </b-form>
+    </b-row>
+
+    <b-row>
+      <b-col>
+        <b-button
+          :to="{name: 'register'}"
+        >
+          {{ $t('register') }}
+        </b-button>
+      </b-col>
+    </b-row>
   </div>
 </template>
 
@@ -76,6 +110,10 @@ export default {
             this.errorMessage = 'Invalid username/password combination'
             return
           }
+          if (error.response && error.response.status === 403) {
+            this.errorMessage = 'Your account has not been verified'
+            return
+          }
           this.error = 'An error occurred during the request' // this sucks as well
           console.error(error)
         })
@@ -99,30 +137,3 @@ export default {
   }
 }
 </script>
-
-<style scoped>
-h1, h2 {
-  text-align: center;
-  font-family: 'Literata';
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
-}
-
-textarea {
-  width: 600px;
-  height: 200px;
-}
-</style>

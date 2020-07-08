@@ -2,13 +2,19 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/exlibris-fed/exlibris/dto"
+	"github.com/exlibris-fed/exlibris/mail"
 	"github.com/exlibris-fed/exlibris/model"
+
+	"github.com/google/uuid"
+	"github.com/gorilla/mux"
+	"github.com/jinzhu/gorm"
 )
 
 // Register will create a user on the server
@@ -39,18 +45,42 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	user, err := model.NewUser(request.Username, request.Password, request.Email, request.DisplayName)
 	if err != nil {
 		log.Println("error creating user object: " + err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
-	result := h.db.Create(user)
+	key, err := model.NewRegistrationKey(*user)
+	if err != nil {
+		log.Println("error creating registration key object: " + err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	if result.Error != nil {
+	err = h.db.Transaction(func(tx *gorm.DB) error {
+		if err := tx.Create(user).Error; err != nil {
+			return err
+		}
+		if err := tx.Create(key).Error; err != nil {
+			return err
+		}
+		return nil
+	})
+
+	if err != nil {
 		// I'd like this to be a constant in a db package somewhere
-		if strings.Contains(result.Error.Error(), "duplicate key value violates unique constraint") {
+		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			w.WriteHeader(http.StatusConflict)
 		} else {
 			w.WriteHeader(http.StatusBadRequest)
 		}
 		return
 	}
+
+	m := mail.New(h.cfg.SMTP.Host, h.cfg.SMTP.Port, h.cfg.SMTP.Username, h.cfg.SMTP.Password)
+	if err := m.SendVerificationEmail(user.Email, fmt.Sprintf("%s/verify/%s", h.cfg.Domain, key.Key.String())); err != nil {
+		// the user was created, so this isn't an error, but it's not great
+		log.Printf("error sending registration email to user %s: %s", user.Username, err.Error())
+	}
+
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -90,6 +120,11 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !user.Verified {
+		w.WriteHeader(http.StatusForbidden)
+		return
+	}
+
 	jwt, err := user.GenerateJWT()
 	if err != nil {
 		log.Printf("error generating jwt for user %s: %s", user.Username, err)
@@ -110,3 +145,46 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	w.Write(b)
 }
 
+// VerifyKey validates a user's verification key and activates their account
+func (h *Handler) VerifyKey(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	stringKey, ok := vars["key"]
+	if !ok {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+	key, err := uuid.Parse(stringKey)
+	if err != nil {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	var registrationKey model.RegistrationKey
+	if err := h.db.Preload("User").
+		Where("key = ?", key).
+		First(&registrationKey).Error; err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			log.Printf("error getting key: %s", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		return
+	}
+
+	if err := h.db.Transaction(func(tx *gorm.DB) error {
+		registrationKey.User.Verified = true
+		if err := tx.Save(&registrationKey.User).Error; err != nil {
+			return err
+		}
+		if err := tx.Delete(&registrationKey).Error; err != nil {
+			return err
+		}
+		return nil
+	}); err != nil {
+		log.Printf("error activating user %s: %s", registrationKey.User.Username, err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

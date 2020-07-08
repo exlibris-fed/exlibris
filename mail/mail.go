@@ -2,6 +2,7 @@ package mail
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/smtp"
 )
@@ -26,6 +27,7 @@ func (m *Mail) SendVerificationEmail(to string, link string) error {
 }
 
 func (m *Mail) sendEmail(to string, subject string, body string) error {
+	log.Printf("sending email to %s with subject '%s'", to, subject)
 	recipients := []string{to}
 	msg := []byte(fmt.Sprintf(
 		"To: %s\r\n"+

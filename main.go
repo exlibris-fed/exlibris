@@ -7,6 +7,7 @@ import (
 	"os"
 	"time"
 
+	"github.com/exlibris-fed/exlibris/config"
 	"github.com/exlibris-fed/exlibris/handler"
 	"github.com/exlibris-fed/exlibris/handler/middleware"
 	"github.com/exlibris-fed/exlibris/model"
@@ -18,22 +19,9 @@ import (
 )
 
 func main() {
-	host := os.Getenv("HOST")
-	if host == "" {
-		log.Fatalf("HOST not provided")
-	}
-	port := os.Getenv("PORT")
-	if port == "" {
-		log.Fatalf("PORT not provided")
-	}
-	if os.Getenv("DOMAIN") == "" {
-		log.Fatalf("DOMAIN not provided")
-	}
-	if os.Getenv("SECRET") == "" {
-		log.Fatalf("SECRET not provided")
-	}
+	cfg := config.Load()
 
-	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
+	db, err := gorm.Open("postgres", cfg.DSN)
 	if err != nil {
 		log.Fatalf("unable to connect to database: %s", err)
 	}
@@ -47,6 +35,7 @@ func main() {
 	db.AutoMigrate(model.Review{})
 	db.AutoMigrate(model.Subject{})
 	db.AutoMigrate(model.User{})
+	db.AutoMigrate(model.RegistrationKey{})
 
 	db.Model(&model.APObject{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&model.APObject{}).AddForeignKey("read_id", "reads(id)", "CASCADE", "CASCADE")
@@ -64,8 +53,9 @@ func main() {
 
 	db.Model(&model.Review{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&model.Review{}).AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Model(&model.RegistrationKey{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
-	h := handler.New(db)
+	h := handler.New(db, cfg)
 	m := middleware.New(db)
 
 	r := mux.NewRouter()
@@ -75,6 +65,7 @@ func main() {
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
 	api.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
+	api.HandleFunc("/verify/{key}", h.VerifyKey).Methods(http.MethodGet, http.MethodOptions)
 
 	books := api.PathPrefix("/book").Subrouter()
 	books.Use(m.Authenticated)
@@ -95,7 +86,7 @@ func main() {
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Access-Control-Allow-Origin"}))
 	loggedRouter := handlers.LoggingHandler(os.Stdout, corsRouter(r))
 
-	addr := net.JoinHostPort(host, port)
+	addr := net.JoinHostPort(cfg.Host, cfg.Port)
 	log.Println("Starting on", addr)
 
 	server := &http.Server{
