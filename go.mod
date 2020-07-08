@@ -16,6 +16,6 @@ require (
 	github.com/jinzhu/gorm v1.9.14
 	github.com/lib/pq v1.7.0 // indirect
 	github.com/mattn/go-sqlite3 v2.0.1+incompatible // indirect
-	golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9
+	golang.org/x/crypto v0.0.0-20200707235045-ab33eee955e0
 	golang.org/x/sys v0.0.0-20200625212154-ddb9806d33ae // indirect
 )
