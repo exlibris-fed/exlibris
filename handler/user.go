@@ -35,7 +35,7 @@ func (h *Handler) HandleActivityPubProfile(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	profile := fmt.Sprintf("%s/user/%s", h.cfg.Domain, user.Username)
+	profile := fmt.Sprintf("%s://%s/user/%s", h.cfg.Scheme, h.cfg.Domain, user.Username)
 	response := dto.NewActivityPubUser()
 	response.ID = profile
 	response.Following = profile + "/following"
@@ -44,7 +44,7 @@ func (h *Handler) HandleActivityPubProfile(w http.ResponseWriter, r *http.Reques
 	response.Outbox = profile + "/outbox"
 	response.Username = user.Username
 	response.Name = user.DisplayName
-	response.URL = fmt.Sprintf("%s/@%s", h.cfg.Domain, user.Username)
+	response.URL = fmt.Sprintf("%s://%s/@%s", h.cfg.Scheme, h.cfg.Domain, user.Username)
 	response.Endpoints["sharedInbox"] = fmt.Sprintf("%s/inbox", h.cfg.Domain)
 
 	if publicKey, err := marshalPublicKey(user.PrivateKey); err == nil {

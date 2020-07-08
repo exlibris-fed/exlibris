@@ -8,6 +8,7 @@ import (
 type Config struct {
 	Host   string
 	Port   string
+	Scheme string
 	Domain string
 	Secret string
 	DSN    string
@@ -29,6 +30,11 @@ func Load() *Config {
 	port := os.Getenv("PORT")
 	if port == "" {
 		log.Fatalf("PORT not provided")
+	}
+	scheme := os.Getenv("SCHEME")
+	if scheme == "" {
+		log.Println("SCHEME not provided, defaulting to https")
+		scheme = "https"
 	}
 	domain := os.Getenv("DOMAIN")
 	if domain == "" {
@@ -62,6 +68,7 @@ func Load() *Config {
 	return &Config{
 		Host:   host,
 		Port:   port,
+		Scheme: scheme,
 		Domain: domain,
 		Secret: secret,
 		DSN:    dsn,
