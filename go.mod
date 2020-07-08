@@ -2,8 +2,6 @@ module github.com/exlibris-fed/exlibris
 
 go 1.14
 
-replace github.com/exlibris-fed/openlibrary-go => /home/mgeneral/repos/openlibrary-go
-
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
