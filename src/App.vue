@@ -27,9 +27,6 @@ export default {
         title: 'exlibris'
       }
     }
-  },
-  created: function () {
-    console.log(process.env)
   }
 }
 </script>

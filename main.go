@@ -32,6 +32,7 @@ func main() {
 	if os.Getenv("SECRET") == "" {
 		log.Fatalf("SECRET not provided")
 	}
+
 	db, err := gorm.Open("postgres", os.Getenv("POSTGRES_CONNECTION"))
 	if err != nil {
 		log.Fatalf("unable to connect to database: %s", err)

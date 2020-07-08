@@ -43,7 +43,8 @@ export default {
           title: searchTerm
         }
       }).then(response => {
-        this.books = response.data
+        // only have 16 rows of 3
+        this.books = response.data.slice(0, 48)
       })
     },
 
