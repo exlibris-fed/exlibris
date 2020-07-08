@@ -57,8 +57,8 @@ func (h *Handler) HandleWebfinger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	atProfile := fmt.Sprintf("%s/@%s", h.cfg.Domain, user.Username)
-	userProfile := fmt.Sprintf("%s/user/%s", h.cfg.Domain, user.Username)
+	atProfile := fmt.Sprintf("%s://%s/@%s", h.cfg.Scheme, h.cfg.Domain, user.Username)
+	userProfile := fmt.Sprintf("%s://%s/user/%s", h.cfg.Scheme, h.cfg.Domain, user.Username)
 	response := dto.Webfinger{
 		Subject: resource,
 		Aliases: []string{atProfile, userProfile},
