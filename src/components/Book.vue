@@ -73,7 +73,9 @@
 
     <div class="clearfix" />
 
-    <blockquote class="blockquote">{{ book.description }}</blockquote>
+    <blockquote class="blockquote">
+      {{ book.description }}
+    </blockquote>
   </div>
 </template>
 
