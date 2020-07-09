@@ -7,16 +7,14 @@ import (
 	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
-	"github.com/google/uuid"
 )
 
 // An Author is someone who has written a Book.
 type Author struct {
-	Base
-	OpenLibraryID string `gorm:"unique;not null" json:"id"`
+	BaseEvents
+	OpenLibraryID string `gorm:"primary_key" json:"id"`
 	Name          string `json:"name"`
-	Books         []Book `gorm:"many2many:book_authors"`
-	BookAuthorsID uuid.UUID
+	Books         []Book `gorm:"many2many:book_authors;null"`
 }
 
 // ToType returns a representation of an author as an ActivityPub object.
@@ -39,5 +37,8 @@ func (a *Author) ToType() vocab.Type {
 
 // NewAuthor creates an author from an openlibrary Author
 func NewAuthor(author openlibrary.Author) *Author {
-	return &Author{}
+	return &Author{
+		OpenLibraryID: author.Key,
+		Name:          author.Name,
+	}
 }

@@ -8,33 +8,39 @@ import (
 	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
-	"github.com/google/uuid"
 )
 
 // A Book is something that can be read. Currently this only supports things which are in the Library of Congress API, but eventually it'd be great to support fanfiction and other online-only sources.
 type Book struct {
-	Base
-	OpenLibraryID  string   `gorm:"unique;not null" json:"open_library_id"`
-	Title          string   `gorm:"not null;index" json:"title"`
-	Published      int      `json:"published,omitempty"`
-	ISBN           string   `json:"isbn,omitempty"`
-	Authors        []Author `gorm:"many2many:book_authors"`
-	BookAuthorsID  uuid.UUID
-	Subjects       []Subject `gorm:"many2many:book_subjects"`
-	BookSubjectsID uuid.UUID
+	BaseEvents
+	OpenLibraryID string    `gorm:"primary_key" json:"open_library_id"`
+	Title         string    `gorm:"not null;index" json:"title"`
+	Published     int       `json:"published,omitempty"`
+	ISBN          string    `json:"isbn,omitempty"`
+	Authors       []Author  `gorm:"many2many:book_authors;null"`
+	Subjects      []Subject `gorm:"many2many:book_subjects;null"`
 }
 
 // NewBook returns a new instance of a book
-func NewBook(book openlibrary.Work) *Book {
-	return &Book{
-		Base: Base{
-			ID: uuid.New(),
-		},
+func NewBook(book openlibrary.Work, editions []openlibrary.Edition, authors []Author) *Book {
+
+	result := &Book{
 		OpenLibraryID: book.Key,
 		Title:         book.Title,
-		// Published:     book.,
-		// ISBN:          book.Isbn[0],
+		Authors:       authors,
 	}
+
+	// @TODO: This is just blindly taking the first edition returns in editions, could be smarter?
+	if len(editions) > 0 {
+		edition := editions[0]
+		result.ISBN = edition.Isbn13[0]
+		if date, err := time.Parse("January 3rd 2006", edition.PublishDate); err == nil {
+			// @FIXME: we should store int64 instead of int, currently reducing precision
+			result.Published = int(date.Unix())
+		}
+	}
+
+	return result
 }
 
 // ToType returns a representation of a book as an ActivityPub object.

@@ -1,13 +1,10 @@
 package model
 
-import "github.com/google/uuid"
-
 // Subject for a book
 type Subject struct {
 	Base
-	Books          []Book `gorm:"many2many:book_subjects"`
-	BookSubjectsID uuid.UUID
-	Subject        string `gorm:"unique"`
+	Books   []Book `gorm:"many2many:book_subjects"`
+	Subject string `gorm:"unique"`
 }
 
 // NewSubject creates a new subject
