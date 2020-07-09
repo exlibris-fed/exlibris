@@ -73,7 +73,7 @@ export default {
     },
 
     successToast () {
-      self.$bvToast.toast(this.$t('readSuccess.message', { title: this.lastRead.title }), {
+      this.$bvToast.toast(this.$t('readSuccess.message', { title: this.lastRead.title }), {
         title: this.$t('readSuccess.title'),
         solid: true,
         variant: 'info',

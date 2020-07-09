@@ -42,7 +42,7 @@ export default {
   },
   computed: {
     profileLink () {
-      return '@' + this.user.preferredUsername
+      return '/@' + this.user.preferredUsername
     }
   },
   i18n: {

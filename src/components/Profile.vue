@@ -9,11 +9,18 @@
     </h1>
 
     <div
-      v-if="feed"
+      v-if="feed && feed.length"
     >
       <h2>{{ $t('feed') }}</h2>
       <BookList :feed="feed" />
     </div>
+    <b-alert
+      v-else
+      show
+      variant="warning"
+    >
+      {{ $t('emptyFeed') }}
+    </b-alert>
   </div>
 </template>
 
@@ -41,7 +48,8 @@ export default {
     messages: {
       en: {
         at: '@',
-        feed: 'Recently Read'
+        feed: 'Recently Read',
+        emptyFeed: "This user hasn't read anything yet!"
       }
     }
   }
