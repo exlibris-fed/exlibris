@@ -5,7 +5,7 @@ go 1.14
 require (
 	github.com/davecgh/go-spew v1.1.1
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
-	github.com/exlibris-fed/openlibrary-go v0.5.0
+	github.com/exlibris-fed/openlibrary-go v0.5.5
 	github.com/go-fed/activity v0.4.1-0.20200204213352-de06e3ccdc3e
 	github.com/go-fed/httpsig v1.0.0
 	github.com/google/uuid v1.1.1
