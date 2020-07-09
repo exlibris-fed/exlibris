@@ -5,6 +5,7 @@ import (
 	"net/url"
 	"time"
 
+	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/google/uuid"
@@ -24,12 +25,15 @@ type Book struct {
 }
 
 // NewBook returns a new instance of a book
-func NewBook(id string, title string, published int, isbn string) *Book {
+func NewBook(book openlibrary.Work) *Book {
 	return &Book{
-		OpenLibraryID: id,
-		Title:         title,
-		Published:     published,
-		ISBN:          isbn,
+		Base: Base{
+			ID: uuid.New(),
+		},
+		OpenLibraryID: book.Key,
+		Title:         book.Title,
+		// Published:     book.,
+		// ISBN:          book.Isbn[0],
 	}
 }
 

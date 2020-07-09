@@ -24,6 +24,8 @@ github.com/exlibris-fed/openlibrary-go v0.3.3 h1:JjKdQoRJpbvamR4adI7L6M6ta1Jtve9
 github.com/exlibris-fed/openlibrary-go v0.3.3/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/exlibris-fed/openlibrary-go v0.3.4 h1:dHjf4vYxBxIvMd+d5JVlbYKNf6I4dHgXB+2XFS52JSg=
 github.com/exlibris-fed/openlibrary-go v0.3.4/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
+github.com/exlibris-fed/openlibrary-go v0.4.0 h1:R0M9NDDyIksbXZ8CRPI0zJZYkI5CiTf/zkMqoAT/V4k=
+github.com/exlibris-fed/openlibrary-go v0.4.0/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/fatih/color v1.9.0 h1:8xPHl4/q1VyqGIPif1F+1V3Y3lSmrq01EabUW3CoW5s=
 github.com/fatih/color v1.9.0/go.mod h1:eQcE1qtQxscV5RaZvpXrrb8Drkc3/DdQ+uUYCNjL+zU=
 github.com/githubnemo/CompileDaemon v1.0.0 h1:F4nrVyPOxva6gJIw320fwfaFaPl8ZuEk95RZOy9Q4eM=
@@ -87,6 +89,8 @@ golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073 h1:xMPOj6Pz6UipU1wXLkrtqp
 golang.org/x/crypto v0.0.0-20200302210943-78000ba7a073/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9 h1:psW17arqaxU48Z5kZ0CQnkZWQJsqcURM6tKiBApRjXI=
 golang.org/x/crypto v0.0.0-20200622213623-75b288015ac9/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
+golang.org/x/crypto v0.0.0-20200707235045-ab33eee955e0 h1:eIYIE7EC5/Wv5Kbz8bJPaq+TN3kq3W8S+LSm62vM0DY=
+golang.org/x/crypto v0.0.0-20200707235045-ab33eee955e0/go.mod h1:LzIPMQfyMNhhGPhUkYOs5KpL4U8rLKemX1yGLhDgUto=
 golang.org/x/net v0.0.0-20180218175443-cbe0f9307d01/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20180724234803-3673e40ba225/go.mod h1:mL1N/T3taQHkDXs73rZJwtUhF3w3ftmwwsq0BUmARs4=
 golang.org/x/net v0.0.0-20190404232315-eb5bcb51f2a3/go.mod h1:t9HGtf8HONx5eT2rtn7q6eTqICYqUVnKs3thJo3Qplg=

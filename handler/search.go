@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/openlibrary-go"
@@ -24,9 +25,21 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var response []dto.Book
+
 	for _, book := range books {
+		isBook := false
+		for _, seed := range book.Seed {
+			// Check for book seeds
+			if strings.Contains(seed, "book") {
+				isBook = true
+				break
+			}
+		}
+		if !isBook {
+			continue
+		}
 		b := dto.Book{
-			ID: book.Key,
+			ID:        book.Key,
 			Title:     book.Title,
 			Authors:   []string{},
 			Published: book.FirstPublishYear,
@@ -49,5 +62,6 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(b)
 }

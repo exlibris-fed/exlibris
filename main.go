@@ -69,7 +69,7 @@ func main() {
 	api.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
 
 	books := api.PathPrefix("/book").Subrouter()
-	books.Use(m.Authenticated)
+	books.Use(m.WithUserModel)
 	books.HandleFunc("", h.SearchBooks)
 	books.HandleFunc("/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
 	books.HandleFunc("/read", h.GetReads)
