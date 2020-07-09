@@ -48,13 +48,10 @@
 
     <b-container
       id="app"
-      class="mt-3"
     >
       <router-view
         :axios="axios"
         :user="user"
-        @login="handleLogin"
-        @logout="handleLogout"
       />
     </b-container>
   </div>
@@ -79,31 +76,40 @@ export default {
     }
   },
   created () {
-    const self = this
+    this.$root.$on('login', this.handleLogin)
+    this.$root.$on('logout', this.handleLogout)
     const config = {
       baseURL: process.env.VUE_APP_API_ORIGIN
     }
     if (window.localStorage.getItem('auth') && window.localStorage.getItem('auth') != null) {
-      const jwt = localStorage.getItem('auth')
       this.authenticated = true
       config.headers = {
-        Authorization: 'Bearer ' + jwt
+        Authorization: 'Bearer ' + localStorage.getItem('auth')
       }
-      const payload = this.decodeJWT(jwt)
+    }
+    this.axios = axios.create(config)
+
+    if (this.authenticated) {
+      this.getAuthenticatedUser()
+    }
+  },
+  methods: {
+    getAuthenticatedUser () {
+      const self = this
+      const payload = this.decodeJWT(localStorage.getItem('auth'))
       if (payload && payload.kid) {
-        this.axios = axios.create(config)
         this.axios.get('/user/' + payload.kid)
           .then(function (response) { self.user = response.data })
           .catch(r => console.error(r))
       }
-    }
-  },
-  methods: {
+    },
     handleLogin () {
       this.authenticated = true
+      this.getAuthenticatedUser()
     },
     handleLogout () {
       this.authenticated = false
+      this.user = null
     },
     decodeJWT (token) {
       const base64Url = token.split('.')[1]
