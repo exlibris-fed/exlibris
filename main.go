@@ -74,13 +74,18 @@ func main() {
 	books.HandleFunc("/read", h.GetReads)
 
 	// inbox/outbox handle authentication as part of the go-fed flow. ExtractUsername will populate it if present.
-	api.Handle("/user/{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
-	api.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
-	api.Handle("/@{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
-	api.Handle("/@{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
+	ap := r.Headers("Accept", "application/activity+json").Subrouter()
+	// TODO add withusermodel here?
+	ap.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
+	ap.Handle("/user/{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
+	ap.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
+	ap.Handle("/@{username}", http.HandlerFunc(h.HandleActivityPubProfile))
+	ap.Handle("/@{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
+	ap.Handle("/@{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
 
 	// App
 	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)
+	r.HandleFunc("/.well-known/webfinger", h.HandleWebfinger)
 	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
 	corsRouter := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Access-Control-Allow-Origin"}))
