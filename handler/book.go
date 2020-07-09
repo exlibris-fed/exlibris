@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/gorilla/mux"
@@ -20,7 +21,7 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := dto.Book{ID: book.OpenLibraryID, Title: book.Title, Description: book.Description}
+	response := dto.Book{ID: book.OpenLibraryID, Title: book.Title, Description: book.Description, Published: time.Unix(int64(book.Published), 0)}
 	for _, author := range book.Authors {
 		response.Authors = append(response.Authors, author.Name)
 	}

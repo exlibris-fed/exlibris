@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/exlibris/model"
@@ -37,7 +38,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			continue
 		}
-		bookDTO := dto.Read{Book: dto.Book{ID: book.OpenLibraryID, Title: book.Title}, Timestamp: read.CreatedAt}
+		bookDTO := dto.Read{Book: dto.Book{ID: book.OpenLibraryID, Title: book.Title, Published: time.Unix(int64(book.Published), 0), Description: book.Description}, Timestamp: read.CreatedAt}
 		for _, author := range book.Authors {
 			bookDTO.Authors = append(bookDTO.Authors, author.Name)
 		}
