@@ -26,7 +26,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 	}
 
 	reads := []model.Read{}
-	response := []dto.Book{}
+	response := []dto.Read{}
 
 	if err := h.db.Where("user_id = ?", user.ID).Find(&reads).Error; err != nil {
 		// Error searching
@@ -40,7 +40,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			continue
 		}
-		bookDTO := dto.Book{ID: book.OpenLibraryID, Title: book.Title}
+		bookDTO := dto.Read{Book: dto.Book{ID: book.OpenLibraryID, Title: book.Title}, Timestamp: read.CreatedAt}
 		for _, author := range book.Authors {
 			bookDTO.Authors = append(bookDTO.Authors, author.Name)
 		}
