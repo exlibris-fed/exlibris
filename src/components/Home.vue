@@ -34,7 +34,10 @@ export default {
     }
   },
   data () {
-    return { books: [] }
+    return {
+      books: [],
+      lastRead: {}
+    }
   },
   methods: {
     onTermChange (searchTerm) {
@@ -49,16 +52,43 @@ export default {
     },
 
     read (book) {
+      const self = this
       const id = book.id.split('/')[2]
+      this.lastRead = book
       this.axios.post('/book/' + id + '/read')
-        .then(r => console.log(r)) // TODO
-        .error(r => console.error(r)) // also TODO
+        .then(self.successToast)
+        .catch(self.errorToast)
+    },
+
+    successToast () {
+      self.$bvToast.toast(this.$t('readSuccess.message', { title: this.lastRead.title }), {
+        title: this.$t('readSuccess.title'),
+        solid: true,
+        variant: 'info',
+        autoHideDelay: 5000,
+        appendToast: true
+      })
+    },
+
+    errorToast (error) {
+      self.$bvToast.toast(error.message, {
+        title: self.$t('error'),
+        solid: true,
+        variant: 'danger',
+        autoHideDelay: 5000,
+        appendToast: true
+      })
     }
   },
   i18n: {
     messages: {
       en: {
-        callToAction: 'What have you read lately?'
+        callToAction: 'What have you read lately?',
+        error: 'Error',
+        readSuccess: {
+          title: 'Book Read',
+          message: '{title} has been added to your feed'
+        }
       }
     }
   }

@@ -4,6 +4,7 @@
     <Profile
       v-else
       :user="user"
+      :feed="feed"
     />
   </b-container>
 </template>
@@ -32,6 +33,29 @@ export default {
   data: function () {
     return {
       feed: null
+    }
+  },
+
+  created () {
+    const self = this
+    this.axios.get('/book/read')
+      .then(function (response) { self.feed = response.data })
+      .catch(function (error) {
+        self.$bvToast.toast(error.message, {
+          title: self.$t('error'),
+          solid: true,
+          variant: 'danger',
+          autoHideDelay: 5000,
+          appendToast: true
+        })
+      })
+  },
+
+  i18n: {
+    messages: {
+      en: {
+        error: 'Error'
+      }
     }
   }
 }

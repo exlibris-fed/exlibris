@@ -1,8 +1,9 @@
 <template>
   <b-row>
-    <BookGridCard
+    <Book
       v-for="book in books"
       :key="book.id"
+      type="card"
       :book="book"
       @read="readBook"
     />
@@ -10,12 +11,12 @@
 </template>
 
 <script>
-import BookGridCard from './BookGridCard.vue'
+import Book from './Book.vue'
 
 export default {
   name: 'BookGrid',
   components: {
-    BookGridCard
+    Book
   },
   props: {
     books: {
@@ -30,22 +31,3 @@ export default {
   }
 }
 </script>
-
-<style>
-
-#grid-wrapper {
-  display: flex;
-  justify-content: space-between;
-  flex-wrap: wrap;
-}
-
-BookGridCard {
-  margin: 5px;
-}
-
-BookGridCard:hover {
-  -webkit-filter: drop-shadow(0 20px 20px  rgba(0, 0, 0, 0.70));
-  filter: drop-shadow(0 20px 20px rgba(0, 0, 0, 0.70));
-}
-
-</style>
