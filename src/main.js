@@ -13,6 +13,7 @@ import LogoutPage from './Views/Logout.vue'
 import Register from './Views/Register.vue'
 import Verify from './Views/Verify.vue'
 import ProfilePage from './Views/ProfilePage.vue'
+import BookDetail from './Views/BookDetail.vue'
 
 Vue.use(VueI18n)
 Vue.use(VueRouter)
@@ -24,6 +25,7 @@ Vue.config.productionTip = false
 const routes = [
   { path: '/', component: HomePage, name: 'home' },
   { path: '/user/:user', component: ProfilePage, name: 'profile', alias: '/@:user' },
+  { path: '/book/:book', component: BookDetail, name: 'book' },
   { path: '/login', component: LoginPage, name: 'login' },
   { path: '/logout', component: LogoutPage, name: 'logout' },
   { path: '/register', component: Register, name: 'register' },

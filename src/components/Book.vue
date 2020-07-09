@@ -8,11 +8,24 @@
     <b-card
       :title="book.title"
     >
-      <b-card-img-lazy
-        :src="coverImageLg"
-      />
+      <b-link
+        :to="{ name: 'book', params: { book: idSlug } }"
+      >
+        <b-card-img-lazy
+          :src="coverImageLg"
+        />
+      </b-link>
       <b-card-text>
-        {{ $t('attribution') }} {{ book.authors[0] }}
+        <p
+          v-if="published"
+        >
+          {{ $t('published') }} {{ published }}
+        </p>
+        <p
+          v-if="authors"
+        >
+          {{ $t('attribution') }} {{ authors }}
+        </p>
       </b-card-text>
       <b-button
         @click="readBook"
@@ -21,8 +34,10 @@
       </b-button>
     </b-card>
   </b-col>
+
   <b-list-group-item
     v-else-if="type === 'list'"
+    :to="{ name: 'book', params: { book: idSlug } }"
   >
     <h3>{{ book.title }}</h3>
     <p
@@ -32,6 +47,36 @@
       {{ $t('attribution') }} {{ authors }}
     </p>
   </b-list-group-item>
+
+  <div v-else>
+    <b-img
+      :src="coverImageLg"
+      left
+    />
+    <h1> {{ book.title }}</h1>
+    <p
+      v-if="authors"
+      class="text-muted"
+    >
+      {{ $t('attribution') }} {{ authors }}
+    </p>
+    <p
+      v-if="published"
+    >
+      {{ $t('published') }} {{ published }}
+    </p>
+    <b-button
+      @click="readBook"
+    >
+      {{ $t('read') }}
+    </b-button>
+
+    <div class="clearfix" />
+
+    <blockquote class="blockquote">
+      {{ book.description }}
+    </blockquote>
+  </div>
 </template>
 
 <script>
@@ -41,6 +86,7 @@ export default {
     messages: {
       en: {
         attribution: 'By',
+        published: 'Published',
         read: "I've Read This",
         review: 'Write A Review'
       }
@@ -67,10 +113,24 @@ export default {
 
     coverImageSm: function () {
       return (this.book.covers && (this.book.covers.small || this.book.covers.medium || this.book.covers.large)) || require('../../public/default-cover.jpg')
+    },
+
+    idSlug () {
+      return this.book.id.split('/').pop()
+    },
+
+    published () {
+      // don't have a published date
+      if (!this.book.published) {
+        return null
+      }
+      // published date just so happent to be the unix epoch? fishy.
+      const timestamp = new Date(this.book.published)
+      if (timestamp.getTime() === 0) {
+        return null
+      }
+      return timestamp.getFullYear()
     }
-  },
-  created () {
-    console.log(this.book)
   },
   methods: {
     readBook: function () {

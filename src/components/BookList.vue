@@ -2,7 +2,7 @@
   <b-list-group>
     <Book
       v-for="book in feed"
-      :key="book.id"
+      :key="book.id + book.timestamp"
       :book="book"
       type="list"
     />
