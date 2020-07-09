@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/exlibris/model"
@@ -64,6 +65,9 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 	book := &model.Book{}
 	h.db.Where("open_library_id = ?", fmt.Sprintf("/works/%s", id)).First(&book)
 	if book.OpenLibraryID == "" {
+		// @TODO: Move all this into infra service that handles taking a book and its authors
+		// and saving it and the relationships into the database
+
 		// fetch book from API
 		work, err := openlibrary.GetWorkByID(id)
 		if err != nil {
@@ -71,9 +75,29 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusInternalServerError)
 			return
 		}
-		log.Printf("%+v\n", work)
 
-		book = model.NewBook(work)
+		editions, err := openlibrary.GetEditionsByID(id)
+		// @TODO: Persist editions?
+		if err != nil {
+			log.Println("Could not fetch work editions", id, "got error", err)
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		var authors []model.Author
+		for _, author := range work.Authors {
+
+			author, err := openlibrary.GetAuthorByID(strings.Replace(author.Author.Key, "/authors/", "", 1))
+			if err != nil {
+				continue
+			}
+			authorModel := model.NewAuthor(author)
+			h.db.Save(authorModel)
+			authors = append(authors, *authorModel)
+		}
+
+		book = model.NewBook(work, editions, authors)
+
 		result := h.db.Create(book)
 		if result.Error != nil {
 			log.Println("Could not insert book into DB:", result.Error)
@@ -89,12 +113,10 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		},
 		UserID: user.ID,
 		User:   user,
-		BookID: book.ID,
+		BookID: book.OpenLibraryID,
 		Book:   *book,
 	}
-	h.db.Debug().Create(&read)
-
-	log.Printf("%+v", read)
+	h.db.Create(&read)
 
 	//go h.ap.Federate(c, user, read)
 

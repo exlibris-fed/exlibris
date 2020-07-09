@@ -40,19 +40,19 @@ func main() {
 	db.Model(&model.APObject{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&model.APObject{}).AddForeignKey("read_id", "reads(id)", "CASCADE", "CASCADE")
 
-	db.Table("book_authors").AddForeignKey("author_id", "authors(id)", "CASCADE", "CASCADE")
-	db.Table("book_authors").AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Table("book_authors").AddForeignKey("author_open_library_id", "authors(open_library_id)", "CASCADE", "CASCADE")
+	db.Table("book_authors").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
 
 	db.Table("book_subjects").AddForeignKey("subject_id", "subjects(id)", "CASCADE", "CASCADE")
-	db.Table("book_subjects").AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Table("book_subjects").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
 
 	db.Model(&model.OutboxEntry{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
-	db.Model(&model.Read{}).AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Model(&model.Read{}).AddForeignKey("book_id", "books(open_library_id)", "CASCADE", "CASCADE")
 	db.Model(&model.Read{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
 	db.Model(&model.Review{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
-	db.Model(&model.Review{}).AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Model(&model.Review{}).AddForeignKey("book_id", "books(open_library_id)", "CASCADE", "CASCADE")
 	db.Model(&model.RegistrationKey{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
 	h := handler.New(db, cfg)
