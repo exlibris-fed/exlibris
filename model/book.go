@@ -19,15 +19,16 @@ type Book struct {
 	ISBN          string    `json:"isbn,omitempty"`
 	Authors       []Author  `gorm:"many2many:book_authors;null"`
 	Subjects      []Subject `gorm:"many2many:book_subjects;null"`
+	Description   string    `gorm:"null" json:"description"`
 }
 
 // NewBook returns a new instance of a book
 func NewBook(book openlibrary.Work, editions []openlibrary.Edition, authors []Author) *Book {
-
 	result := &Book{
 		OpenLibraryID: book.Key,
 		Title:         book.Title,
 		Authors:       authors,
+		Description:   string(book.Description),
 	}
 
 	// @TODO: This is just blindly taking the first edition returns in editions, could be smarter?
