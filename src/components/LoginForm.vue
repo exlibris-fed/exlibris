@@ -103,7 +103,7 @@ export default {
           }
           this.errorMessage = ''
           localStorage.setItem('auth', response.data.bearer)
-          this.$emit('login')
+          this.$root.$emit('login')
           this.$router.push(this.bounceto)
         })
         .catch(error => {

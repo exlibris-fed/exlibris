@@ -2,7 +2,6 @@
   <div id="container">
     <LoginForm
       :bounceto="bounceto"
-      @login="handleLogin"
     />
   </div>
 </template>
@@ -26,11 +25,6 @@ export default {
   created: function () {
     if (localStorage.getItem('auth') !== null) {
       this.$router.push(this.bounceto)
-    }
-  },
-  methods: {
-    handleLogin () {
-      this.$emit('login')
     }
   }
 }
