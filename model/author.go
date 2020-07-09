@@ -12,7 +12,7 @@ import (
 // An Author is someone who has written a Book.
 type Author struct {
 	BaseEvents
-	OpenLibraryID string `gorm:"primary_key;unique;not null" json:"id"`
+	OpenLibraryID string `gorm:"primary_key" json:"id"`
 	Name          string `json:"name"`
 	Books         []Book `gorm:"many2many:book_authors;null"`
 }
