@@ -2,14 +2,12 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
-	"strings"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/exlibris/model"
-	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/google/uuid"
 	"github.com/gorilla/mux"
 )
@@ -40,7 +38,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 			log.Println(err)
 			continue
 		}
-		bookDTO := dto.Read{Book: dto.Book{ID: book.OpenLibraryID, Title: book.Title}, Timestamp: read.CreatedAt}
+		bookDTO := dto.Read{Book: dto.Book{ID: book.OpenLibraryID, Title: book.Title, Published: time.Unix(int64(book.Published), 0), Description: book.Description}, Timestamp: read.CreatedAt}
 		for _, author := range book.Authors {
 			bookDTO.Authors = append(bookDTO.Authors, author.Name)
 		}
@@ -75,50 +73,7 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book := &model.Book{}
-	h.db.Where("open_library_id = ?", fmt.Sprintf("/works/%s", id)).First(&book)
-	if book.OpenLibraryID == "" {
-		// @TODO: Move all this into infra service that handles taking a book and its authors
-		// and saving it and the relationships into the database
-
-		// fetch book from API
-		work, err := openlibrary.GetWorkByID(id)
-		if err != nil {
-			log.Println("Could not fetch work", id, "got error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		editions, err := openlibrary.GetEditionsByID(id)
-		// @TODO: Persist editions?
-		if err != nil {
-			log.Println("Could not fetch work editions", id, "got error", err)
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
-
-		var authors []model.Author
-		for _, author := range work.Authors {
-
-			author, err := openlibrary.GetAuthorByID(strings.Replace(author.Author.Key, "/authors/", "", 1))
-			if err != nil {
-				continue
-			}
-			authorModel := model.NewAuthor(author)
-			h.db.Save(authorModel)
-			authors = append(authors, *authorModel)
-		}
-
-		book = model.NewBook(work, editions, authors)
-
-		result := h.db.Create(book)
-		if result.Error != nil {
-			log.Println("Could not insert book into DB:", result.Error)
-			w.WriteHeader(http.StatusConflict)
-			return
-		}
-		book = result.Value.(*model.Book)
-	}
+	book := h.bookService.Get(id)
 
 	read := model.Read{
 		Base: model.Base{

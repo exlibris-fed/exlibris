@@ -4,5 +4,5 @@ import "time"
 
 type Read struct {
 	Book
-	Timestamp time.Time
+	Timestamp time.Time `json:"timestamp"`
 }

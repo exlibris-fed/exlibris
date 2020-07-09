@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/dto"
-	"github.com/exlibris-fed/exlibris/model"
 	"github.com/gorilla/mux"
 )
 
@@ -15,17 +15,13 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["book"]
 
-	book := model.Book{}
-	response := dto.Book{}
-
-	if err := h.db.Preload("Authors").Where(&model.Book{OpenLibraryID: "/works/" + id}).First(&book).Error; err != nil {
-		// Error searching
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Println(err)
+	book := h.bookService.Get(id)
+	if book == nil {
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
-	response = dto.Book{ID: book.OpenLibraryID, Title: book.Title, Description: book.Description}
+	response := dto.Book{ID: book.OpenLibraryID, Title: book.Title, Description: book.Description, Published: time.Unix(int64(book.Published), 0)}
 	for _, author := range book.Authors {
 		response.Authors = append(response.Authors, author.Name)
 	}

@@ -34,10 +34,22 @@ func NewBook(book openlibrary.Work, editions []openlibrary.Edition, authors []Au
 	// @TODO: This is just blindly taking the first edition returns in editions, could be smarter?
 	if len(editions) > 0 {
 		edition := editions[0]
+		if len(edition.Isbn10) > 0 {
+			result.ISBN = edition.Isbn10[0]
+		}
 		if len(edition.Isbn13) > 0 {
 			result.ISBN = edition.Isbn13[0]
 		}
-		if date, err := time.Parse("January 3rd 2006", edition.PublishDate); err == nil {
+
+		if date, err := time.Parse("January 2, 2006", edition.PublishDate); err == nil {
+			// @FIXME: we should store int64 instead of int, currently reducing precision
+			result.Published = int(date.Unix())
+		}
+		if date, err := time.Parse("Jan 2, 2006", edition.PublishDate); err == nil {
+			// @FIXME: we should store int64 instead of int, currently reducing precision
+			result.Published = int(date.Unix())
+		}
+		if date, err := time.Parse("Jan 2nd, 2006", edition.PublishDate); err == nil {
 			// @FIXME: we should store int64 instead of int, currently reducing precision
 			result.Published = int(date.Unix())
 		}

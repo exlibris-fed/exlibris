@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/exlibris-fed/exlibris/dto"
 	"github.com/exlibris-fed/openlibrary-go"
@@ -39,10 +40,9 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 			continue
 		}
 		b := dto.Book{
-			ID:        book.Key,
-			Title:     book.Title,
-			Authors:   []string{},
-			Published: book.FirstPublishYear,
+			ID:      book.Key,
+			Title:   book.Title,
+			Authors: []string{},
 			//ISBN:      book.ISBN, // need to dedupe
 			Subjects: book.Subject,
 			Covers: map[string]string{
@@ -50,6 +50,17 @@ func (h *Handler) SearchBooks(w http.ResponseWriter, r *http.Request) {
 				"medium": book.CoverURL(openlibrary.SizeMedium),
 				"large":  book.CoverURL(openlibrary.SizeLarge),
 			},
+		}
+		if len(book.PublishDate) > 0 {
+			if date, err := time.Parse("January 2, 2006", book.PublishDate[0]); err == nil {
+				b.Published = date
+			}
+			if date, err := time.Parse("Jan 2, 2006", book.PublishDate[0]); err == nil {
+				b.Published = date
+			}
+			if date, err := time.Parse("Jan 2nd, 2006", book.PublishDate[0]); err == nil {
+				b.Published = date
+			}
 		}
 		for _, a := range book.AuthorName {
 			b.Authors = append(b.Authors, a)
