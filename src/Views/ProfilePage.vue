@@ -9,7 +9,6 @@
 </template>
 
 <script>
-import axios from 'axios'
 import Profile from '../components/Profile.vue'
 
 export default {
@@ -19,28 +18,21 @@ export default {
     Profile
   },
 
-  data: function () {
-    return {
-      axios: null,
-      user: null
+  props: {
+    axios: {
+      type: Function,
+      required: true
+    },
+    user: {
+      type: Object,
+      default: null
     }
   },
 
-  created: function () {
-    const self = this
-    const config = {
-      baseURL: process.env.VUE_APP_API_ORIGIN
+  data: function () {
+    return {
+      feed: null
     }
-    if (localStorage.getItem('auth')) {
-      config.headers = {
-        Authorization: 'Bearer ' + localStorage.getItem('auth')
-      }
-    }
-    this.axios = axios.create(config)
-
-    this.axios.get('/user/' + this.$route.params.user)
-      .then(function (response) { self.user = response.data })
-      .catch(r => console.error(r))
   }
 }
 </script>
