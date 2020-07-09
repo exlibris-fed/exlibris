@@ -75,6 +75,7 @@ func main() {
 	books.HandleFunc("/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
 	books.HandleFunc("/read", h.GetReads).Methods(http.MethodGet, http.MethodOptions)
 	books.HandleFunc("/{book}", h.GetBook).Methods(http.MethodGet, http.MethodOptions)
+	books.HandleFunc("/{book}/review", h.Review).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 
 	// inbox/outbox handle authentication as part of the go-fed flow. ExtractUsername will populate it if present.
 	ap := r.Headers("Accept", "application/activity+json").Subrouter()
