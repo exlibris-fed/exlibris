@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
+	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
 	"github.com/google/uuid"
@@ -34,4 +35,9 @@ func (a *Author) ToType() vocab.Type {
 	author.SetActivityStreamsName(name)
 
 	return author
+}
+
+// NewAuthor creates an author from an openlibrary Author
+func NewAuthor(author openlibrary.Author) *Author {
+	return &Author{}
 }

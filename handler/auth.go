@@ -81,6 +81,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		log.Printf("error sending registration email to user %s: %s", user.Username, err.Error())
 	}
 
+	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
 }
 
@@ -142,6 +143,7 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
+	w.Header().Add("Content-Type", "application/json")
 	w.Write(b)
 }
 
