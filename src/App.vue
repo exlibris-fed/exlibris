@@ -48,6 +48,7 @@
 
     <b-container
       id="app"
+      class="mt-3"
     >
       <router-view
         :axios="axios"

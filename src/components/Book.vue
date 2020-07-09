@@ -3,11 +3,14 @@
     v-if="type === 'card'"
     cols="12"
     md="3"
+    class="mb-3"
   >
     <b-card
       :title="book.title"
-      :img-src="coverImageLg"
     >
+      <b-card-img-lazy
+        :src="coverImageLg"
+      />
       <b-card-text>
         {{ $t('attribution') }} {{ book.authors[0] }}
       </b-card-text>
