@@ -65,6 +65,7 @@ func main() {
 	api := r.PathPrefix("/api").Subrouter()
 	api.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
 	api.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
+	api.HandleFunc("/verify/resend/{user}", h.ResendVerificationKey).Methods(http.MethodPost, http.MethodOptions)
 	api.HandleFunc("/verify/{key}", h.VerifyKey).Methods(http.MethodGet, http.MethodOptions)
 	api.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
 
