@@ -40,19 +40,19 @@ func main() {
 	db.Model(&model.APObject{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&model.APObject{}).AddForeignKey("read_id", "reads(id)", "CASCADE", "CASCADE")
 
-	db.Table("book_authors").AddForeignKey("author_id", "authors(id)", "CASCADE", "CASCADE")
-	db.Table("book_authors").AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Table("book_authors").AddForeignKey("author_open_library_id", "authors(open_library_id)", "CASCADE", "CASCADE")
+	db.Table("book_authors").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
 
 	db.Table("book_subjects").AddForeignKey("subject_id", "subjects(id)", "CASCADE", "CASCADE")
-	db.Table("book_subjects").AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Table("book_subjects").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
 
 	db.Model(&model.OutboxEntry{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
-	db.Model(&model.Read{}).AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Model(&model.Read{}).AddForeignKey("book_id", "books(open_library_id)", "CASCADE", "CASCADE")
 	db.Model(&model.Read{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
 	db.Model(&model.Review{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
-	db.Model(&model.Review{}).AddForeignKey("book_id", "books(id)", "CASCADE", "CASCADE")
+	db.Model(&model.Review{}).AddForeignKey("book_id", "books(open_library_id)", "CASCADE", "CASCADE")
 	db.Model(&model.RegistrationKey{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 
 	h := handler.New(db, cfg)
@@ -69,9 +69,9 @@ func main() {
 
 	books := api.PathPrefix("/book").Subrouter()
 	books.Use(m.WithUserModel)
-	books.HandleFunc("", h.SearchBooks)
+	books.HandleFunc("", h.SearchBooks).Methods(http.MethodGet, http.MethodOptions)
 	books.HandleFunc("/{book}/read", h.Read).Methods(http.MethodPost, http.MethodOptions)
-	books.HandleFunc("/read", h.GetReads)
+	books.HandleFunc("/read", h.GetReads).Methods(http.MethodGet, http.MethodOptions)
 
 	// inbox/outbox handle authentication as part of the go-fed flow. ExtractUsername will populate it if present.
 	ap := r.Headers("Accept", "application/activity+json").Subrouter()

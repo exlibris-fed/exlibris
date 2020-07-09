@@ -49,7 +49,7 @@ export default {
     },
 
     read (book) {
-      const id = book.id.split('/')[1]
+      const id = book.id.split('/')[2]
       this.axios.post('/book/' + id + '/read')
         .then(r => console.log(r)) // TODO
         .error(r => console.error(r)) // also TODO

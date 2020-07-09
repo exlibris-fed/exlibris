@@ -6,7 +6,7 @@ import "github.com/google/uuid"
 type Review struct {
 	Base
 	Book   Book
-	BookID uuid.UUID
+	BookID string
 	User   User
 	UserID uuid.UUID
 	Text   string
