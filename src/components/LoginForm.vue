@@ -5,8 +5,25 @@
       v-if="errorMessage"
       show
       variant="danger"
+      class="text-center"
     >
-      {{ errorMessage }}
+      <div
+        v-if="errorMessage === 'badPassword'"
+      >
+        {{ $t('errors.badPassword') }}
+      </div>
+      <div v-else-if="errorMessage === 'notVerified'">
+        <p>{{ $t('errors.notVerified') }}</p>
+        <b-button
+          right
+          @click="resendVerificationEmail"
+        >
+          {{ $t('form.resendVerificationEmail') }}
+        </b-button>
+      </div>
+      <div v-else>
+        {{ $t('errors.unknown') }}
+      </div>
     </b-alert>
     <b-row
       class="mb-3"
@@ -108,16 +125,19 @@ export default {
         })
         .catch(error => {
           if (error.response && error.response.status === 401) {
-            this.errorMessage = 'Invalid username/password combination'
+            this.errorMessage = 'badPassword'
             return
           }
           if (error.response && error.response.status === 403) {
-            this.errorMessage = 'Your account has not been verified'
+            this.errorMessage = 'notVerified'
             return
           }
-          this.error = 'An error occurred during the request' // this sucks as well
+          this.errorMessage = 'unknown'
           console.error(error)
         })
+    },
+    resendVerificationEmail () {
+      this.$emit('resendVerificationEmail', this.username)
     }
   },
   i18n: {
@@ -127,11 +147,14 @@ export default {
           login: 'Login',
           username: 'Username',
           password: 'Password',
-          send: 'Send'
+          send: 'Send',
+          resendVerificationEmail: 'Resend verification email'
         },
         register: 'Register',
         errors: {
-          badPassword: 'Invalid username/password combination'
+          badPassword: 'Invalid username/password combination',
+          notVerified: 'Your account has not been verified',
+          unknown: 'An error occurred during the request'
         }
       }
     }

@@ -85,6 +85,38 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusCreated)
 }
 
+// ResendVerificationKey will resend the key to a user if they are unverified.
+func (h *Handler) ResendVerificationKey(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	username, ok := vars["user"]
+	if !ok {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
+	var key model.RegistrationKey
+	if err := h.db.Table("registration_keys").
+		Preload("User").
+		Joins("inner join users on registration_keys.user_id = users.id").
+		Where("username = ?", username).
+		First(&key).Error; err != nil {
+		if strings.Contains(err.Error(), "record not found") {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			log.Printf("error getting key: %s", err.Error())
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+	}
+
+	m := mail.New(h.cfg.SMTP.Host, h.cfg.SMTP.Port, h.cfg.SMTP.Username, h.cfg.SMTP.Password)
+	if err := m.SendVerificationEmail(key.User.Email, fmt.Sprintf("%s/verify/%s", h.cfg.Domain, key.Key.String())); err != nil {
+		// the user was created, so this isn't an error, but it's not great
+		log.Printf("error sending registration email to user %s: %s", key.User.Username, err.Error())
+	}
+	w.WriteHeader(http.StatusNoContent)
+}
+
 // Authenticate will validate a user's password and, if correct, return a JWT
 func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	if r.Method == http.MethodOptions {
