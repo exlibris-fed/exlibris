@@ -66,6 +66,7 @@ func main() {
 	api.HandleFunc("/register", h.Register).Methods(http.MethodPost, http.MethodOptions)
 	api.HandleFunc("/authenticate", h.Authenticate).Methods(http.MethodPost, http.MethodOptions)
 	api.HandleFunc("/verify/{key}", h.VerifyKey).Methods(http.MethodGet, http.MethodOptions)
+	api.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
 
 	books := api.PathPrefix("/book").Subrouter()
 	books.Use(m.WithUserModel)
