@@ -5,12 +5,10 @@
     <template
       v-slot:button-content
     >
-      <b-img
-        width="50"
+      <UserIcon
+        :user="user"
         height="50"
-        alt=""
-        :src="icon"
-        rounded="circle"
+        round
       />
       {{ user.name }}
     </template>
@@ -29,8 +27,13 @@
 </template>
 
 <script>
+import UserIcon from './UserIcon.vue'
+
 export default {
   name: 'HeaderProfile',
+  components: {
+    UserIcon
+  },
   props: {
     user: {
       type: Object,
@@ -38,9 +41,6 @@ export default {
     }
   },
   computed: {
-    icon () {
-      return (this.user && this.user.icon) || require('../../public/default-profile.jpg')
-    },
     profileLink () {
       return '@' + this.user.preferredUsername
     }
