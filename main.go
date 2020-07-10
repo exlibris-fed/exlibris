@@ -36,6 +36,7 @@ func main() {
 	db.AutoMigrate(model.Subject{})
 	db.AutoMigrate(model.User{})
 	db.AutoMigrate(model.RegistrationKey{})
+	db.AutoMigrate(model.Cover{})
 
 	db.Model(&model.APObject{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 	db.Model(&model.APObject{}).AddForeignKey("read_id", "reads(id)", "CASCADE", "CASCADE")
@@ -45,6 +46,9 @@ func main() {
 
 	db.Table("book_subjects").AddForeignKey("subject_id", "subjects(id)", "CASCADE", "CASCADE")
 	db.Table("book_subjects").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
+
+	db.Table("book_covers").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
+	db.Table("book_covers").AddForeignKey("cover_id", "covers(id)", "CASCADE", "CASCADE")
 
 	db.Model(&model.OutboxEntry{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 

@@ -19,9 +19,7 @@ type Book struct {
 
 func (b *Book) Get(id string) *model.Book {
 	var book model.Book
-	if err := b.db.Preload("Authors").Where("open_library_id = ?", "/works/"+id).First(&book).Error; err != nil {
-		log.Println("could not find work", err)
-
+	if err := b.db.Preload("Covers").Preload("Authors").Where("open_library_id = ?", "/works/"+id).First(&book).Error; err != nil {
 		// Error finding book in DB
 		data := b.fetch(id)
 		if data == nil {
@@ -84,7 +82,7 @@ type Author struct {
 
 func (a *Author) Get(id string) *model.Author {
 	var author model.Author
-	if a.db.Debug().Where("open_library_id = ?", id).First(&author).Error != nil {
+	if a.db.Where("open_library_id = ?", id).First(&author).Error != nil {
 		// Error finding author in DB
 		data := a.fetch(id)
 		if data == nil {

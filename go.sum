@@ -32,6 +32,8 @@ github.com/exlibris-fed/openlibrary-go v0.5.5 h1:BboP4NaUB6WeeKioSsuqA4zGdG3DPW+
 github.com/exlibris-fed/openlibrary-go v0.5.5/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/exlibris-fed/openlibrary-go v0.6.0 h1:d59TkzYJYEgKnINtHtvKduyK6/xaI7LdZNeY95S9Sc0=
 github.com/exlibris-fed/openlibrary-go v0.6.0/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
+github.com/exlibris-fed/openlibrary-go v0.7.0 h1:FM8/o3bXHd4nTB1Els//TEXOpz87k70e2bPEoSWZjs0=
+github.com/exlibris-fed/openlibrary-go v0.7.0/go.mod h1:xSD1zWskOtFR3mzdKceRLRDoAm1Nd1DYhSMWw6nYJVU=
 github.com/go-fed/activity v0.4.1-0.20200204213352-de06e3ccdc3e h1:zErlpSpHi/lEFv6gAVtxZ18cOuA+F8DbSHBVpvIcfS4=
 github.com/go-fed/activity v0.4.1-0.20200204213352-de06e3ccdc3e/go.mod h1:v4QoPaAzjWZ8zN2VFVGL5ep9C02mst0hQYHUpQwso4Q=
 github.com/go-fed/activity v1.0.0 h1:j7w3auHZnVCjUcgA1mE+UqSOjFBhvW2Z2res3vNol+o=

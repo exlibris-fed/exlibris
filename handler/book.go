@@ -21,7 +21,16 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	response := dto.Book{ID: book.OpenLibraryID, Title: book.Title, Description: book.Description, Published: time.Unix(int64(book.Published), 0)}
+	response := dto.Book{
+		ID:          book.OpenLibraryID,
+		Title:       book.Title,
+		Description: book.Description,
+		Published:   time.Unix(int64(book.Published), 0),
+	}
+	response.Covers = make(map[string]string)
+	for _, cover := range book.Covers {
+		response.Covers[cover.Type] = cover.URL
+	}
 	for _, author := range book.Authors {
 		response.Authors = append(response.Authors, author.Name)
 	}
