@@ -49,33 +49,45 @@
   </b-list-group-item>
 
   <div v-else>
-    <b-img
-      :src="coverImageLg"
-      left
-    />
-    <h1> {{ book.title }}</h1>
-    <p
-      v-if="authors"
-      class="text-muted"
+    <b-row
+      class="mb-3"
     >
-      {{ $t('attribution') }} {{ authors }}
-    </p>
-    <p
-      v-if="published"
-    >
-      {{ $t('published') }} {{ published }}
-    </p>
-    <b-button
-      @click="readBook"
-    >
-      {{ $t('read') }}
-    </b-button>
+      <b-col
+        cols="4"
+      >
+        <b-img
+          :src="coverImageLg"
+          responsive
+        />
+      </b-col>
+      <b-col>
+        <h1> {{ book.title }}</h1>
+        <p
+          v-if="authors"
+          class="text-muted"
+        >
+          {{ $t('attribution') }} {{ authors }}
+        </p>
+        <p
+          v-if="published"
+        >
+          {{ $t('published') }} {{ published }}
+        </p>
+        <b-button
+          @click="readBook"
+        >
+          {{ $t('read') }}
+        </b-button>
+      </b-col>
+    </b-row>
 
-    <div class="clearfix" />
-
-    <blockquote class="blockquote">
-      {{ book.description }}
-    </blockquote>
+    <b-row>
+      <b-col>
+        <blockquote class="blockquote">
+          {{ book.description }}
+        </blockquote>
+      </b-col>
+    </b-row>
   </div>
 </template>
 

@@ -4,6 +4,7 @@
       sticky
       variant="light"
       toggleable="md"
+      class="mb-3"
     >
       <b-navbar-toggle target="nav-text-collapse" />
       <b-navbar-brand
