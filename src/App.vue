@@ -78,22 +78,27 @@ export default {
   created () {
     this.$root.$on('login', this.handleLogin)
     this.$root.$on('logout', this.handleLogout)
-    const config = {
-      baseURL: process.env.VUE_APP_API_ORIGIN
-    }
+
     if (window.localStorage.getItem('auth') && window.localStorage.getItem('auth') != null) {
       this.authenticated = true
-      config.headers = {
-        Authorization: 'Bearer ' + localStorage.getItem('auth')
-      }
     }
-    this.axios = axios.create(config)
-
+    this.axios = this.buildAxios()
     if (this.authenticated) {
       this.getAuthenticatedUser()
     }
   },
   methods: {
+    buildAxios () {
+      const config = {
+        baseURL: process.env.VUE_APP_API_ORIGIN
+      }
+      if (this.authenticated) {
+        config.headers = {
+          Authorization: 'Bearer ' + localStorage.getItem('auth')
+        }
+      }
+      return axios.create(config)
+    },
     getAuthenticatedUser () {
       const self = this
       const payload = this.decodeJWT(localStorage.getItem('auth'))
@@ -105,10 +110,12 @@ export default {
     },
     handleLogin () {
       this.authenticated = true
+      this.axios = this.buildAxios()
       this.getAuthenticatedUser()
     },
     handleLogout () {
       this.authenticated = false
+      this.axios = this.buildAxios()
       this.user = null
     },
     decodeJWT (token) {
