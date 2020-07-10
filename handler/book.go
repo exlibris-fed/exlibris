@@ -10,6 +10,12 @@ import (
 	"github.com/gorilla/mux"
 )
 
+var sizeMapping = map[string]string{
+	"S": "small",
+	"M": "medium",
+	"L": "large",
+}
+
 // GetBook returns a book
 func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
@@ -29,7 +35,7 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 	}
 	response.Covers = make(map[string]string)
 	for _, cover := range book.Covers {
-		response.Covers[cover.Type] = cover.URL
+		response.Covers[sizeMapping[cover.Type]] = cover.URL
 	}
 	for _, author := range book.Authors {
 		response.Authors = append(response.Authors, author.Name)
