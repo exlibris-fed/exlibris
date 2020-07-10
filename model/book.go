@@ -8,6 +8,7 @@ import (
 	"github.com/exlibris-fed/openlibrary-go"
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/google/uuid"
 )
 
 // A Book is something that can be read. Currently this only supports things which are in the Library of Congress API, but eventually it'd be great to support fanfiction and other online-only sources.
@@ -20,6 +21,7 @@ type Book struct {
 	Authors       []Author  `gorm:"many2many:book_authors;null"`
 	Subjects      []Subject `gorm:"many2many:book_subjects;null"`
 	Description   string    `gorm:"null" json:"description"`
+	Covers        []Cover   `gorm:"many2many:book_covers;null" json:"covers"`
 }
 
 // NewBook returns a new instance of a book
@@ -34,6 +36,11 @@ func NewBook(book openlibrary.Work, editions []openlibrary.Edition, authors []Au
 	// @TODO: This is just blindly taking the first edition returns in editions, could be smarter?
 	if len(editions) > 0 {
 		edition := editions[0]
+		if len(book.Covers) > 0 {
+			result.Covers = append(result.Covers, Cover{Base: Base{ID: uuid.New()}, URL: book.CoverURL(openlibrary.SizeLarge), Type: string(openlibrary.SizeLarge)})
+			result.Covers = append(result.Covers, Cover{Base: Base{ID: uuid.New()}, URL: book.CoverURL(openlibrary.SizeMedium), Type: string(openlibrary.SizeMedium)})
+			result.Covers = append(result.Covers, Cover{Base: Base{ID: uuid.New()}, URL: book.CoverURL(openlibrary.SizeSmall), Type: string(openlibrary.SizeSmall)})
+		}
 		if len(edition.Isbn10) > 0 {
 			result.ISBN = edition.Isbn10[0]
 		}
