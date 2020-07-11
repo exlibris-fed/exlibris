@@ -1,71 +1,65 @@
 <template>
-  <div id="register">
-    <h1>{{ $t('form.register') }}</h1>
-    <div v-if="error">
-      {{ error }}
-    </div>
-    <b-form @submit="register">
-      <b-form-group
-        id="username-group"
-        :label="$t('form.username')"
-        label-for="username"
-      >
-        <b-form-input
-          id="username"
-          v-model="username"
-          type="text"
-          required
-        />
-      </b-form-group>
-      <b-form-group
-        id="password-group"
-        :label="$t('form.password')"
-        label-for="password"
-      >
-        <b-form-input
-          v-model="password"
-          type="password"
-          required
-        />
-      </b-form-group>
-      <b-form-group
-        id="password-confirm-group"
-        :label="$t('form.confirmPassword')"
-        label-for="password-confirm"
-      >
-        <b-form-input
-          v-model="confirmPassword"
-          type="password"
-          required
-        />
-      </b-form-group>
-      <b-form-group
-        id="email-group"
-        :label="$t('form.email')"
-        label-for="email"
-      >
-        <b-form-input
-          v-model="email"
-          type="email"
-          required
-        />
-      </b-form-group>
-      <b-form-group
-        id="display-name-group"
-        :label="$t('form.displayName')"
-        label-for="display-name"
-      >
-        <b-form-input
-          v-model="displayName"
-          type="text"
-          required
-        />
-      </b-form-group>
-      <b-button type="submit">
-        {{ $t('form.send' ) }}
-      </b-button>
-    </b-form>
-  </div>
+  <b-form @submit="emit">
+    <b-form-group
+      id="username-group"
+      :label="$t('form.username')"
+      label-for="username"
+    >
+      <b-form-input
+        id="username"
+        v-model="username"
+        type="text"
+        required
+      />
+    </b-form-group>
+    <b-form-group
+      id="password-group"
+      :label="$t('form.password')"
+      label-for="password"
+    >
+      <b-form-input
+        v-model="password"
+        type="password"
+        required
+      />
+    </b-form-group>
+    <b-form-group
+      id="password-confirm-group"
+      :label="$t('form.confirmPassword')"
+      label-for="password-confirm"
+    >
+      <b-form-input
+        v-model="confirmPassword"
+        type="password"
+        required
+      />
+    </b-form-group>
+    <b-form-group
+      id="email-group"
+      :label="$t('form.email')"
+      label-for="email"
+    >
+      <b-form-input
+        v-model="email"
+        type="email"
+        required
+      />
+    </b-form-group>
+    <b-form-group
+      id="display-name-group"
+      :label="$t('form.displayName')"
+      label-for="display-name"
+    >
+      <b-form-input
+        v-model="displayName"
+        type="text"
+        required
+      />
+    </b-form-group>
+    <b-button type="submit">
+      {{ $t('form.send' ) }}
+    </b-button>
+  </b-form>
 </template>
 
 <script>
@@ -90,6 +84,10 @@ export default {
     }
   },
   methods: {
+    emit (e) {
+      e && e.preventDefault()
+      this.$emit('register', this._data)
+    },
     register (e) {
       e.preventDefault()
       if (this.password !== this.confirmPassword) {
@@ -126,18 +124,12 @@ export default {
     messages: {
       en: {
         form: {
-          register: 'Register',
           username: 'Username',
           password: 'Password',
           confirmPassword: 'Password (again)',
           email: 'Email address',
           displayName: 'Display Name',
-          send: 'Send'
-        },
-        error: {
-          mismatchedPassword: 'Passwords do not match',
-          duplicate: 'That username is already taken',
-          unknown: 'An unknown error occurred'
+          send: 'Register'
         }
       }
     }
