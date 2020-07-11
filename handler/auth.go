@@ -184,25 +184,15 @@ func (h *Handler) VerifyKey(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
+
 	key, err := uuid.Parse(stringKey)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	registrationKey, err := h.registrationKeysRepo.Get(key)
-	if err != nil {
-		if errors.Is(err, registrationkeys.ErrNotFound) {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			log.Printf("error getting key: %s", err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-		return
-	}
-
-	if err := h.usersRepo.Activate(registrationKey); err != nil {
-		log.Printf("error activating user %s: %s", registrationKey.User.Username, err.Error())
+	if err := h.usersRepo.Activate(key); err != nil {
+		log.Printf("error activating key %s", err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	}
 

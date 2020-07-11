@@ -6,6 +6,7 @@ import (
 
 	"github.com/exlibris-fed/exlibris/infrastructure/registrationkeys"
 	"github.com/exlibris-fed/exlibris/model"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
 
@@ -16,11 +17,15 @@ var (
 )
 
 func New(db *gorm.DB) *Repository {
-	return &Repository{db: db}
+	return &Repository{
+		db:      db,
+		keyRepo: registrationkeys.New(db),
+	}
 }
 
 type Repository struct {
-	db *gorm.DB
+	db      *gorm.DB
+	keyRepo *registrationkeys.Repository
 }
 
 func (r *Repository) GetByUsername(name string) (*model.User, error) {
@@ -70,14 +75,18 @@ func (r *Repository) Save(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-func (r *Repository) Activate(key *model.RegistrationKey) error {
-	user := key.User
+func (r *Repository) Activate(id uuid.UUID) error {
+
 	return r.db.Transaction(func(tx *gorm.DB) error {
-		user.Verified = true
-		if _, err := r.Save(&user); err != nil {
+		key, err := r.keyRepo.Get(id)
+		if err != nil {
 			return err
 		}
-		if err := registrationkeys.New(r.db).Delete(key); err != nil {
+		key.User.Verified = true
+		if _, err := r.Save(&key.User); err != nil {
+			return err
+		}
+		if err := r.keyRepo.Delete(key); err != nil {
 			return err
 		}
 		return nil
