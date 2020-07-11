@@ -37,8 +37,27 @@ const router = new VueRouter({
   mode: 'history'
 })
 
+const dateTimeFormats = {
+  'en-US': {
+    short: {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    },
+    long: {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      weekday: 'short',
+      hour: 'numeric',
+      minute: 'numeric'
+    }
+  }
+}
+
 const i18n = new VueI18n({
-  locale: 'en'
+  locale: 'en',
+  dateTimeFormats
 })
 
 new Vue({

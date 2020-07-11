@@ -21,7 +21,7 @@
     <BookGrid
       v-else
       :books="books"
-      @read="read"
+      :axios="axios"
     />
   </div>
 </template>
@@ -45,7 +45,6 @@ export default {
   data () {
     return {
       books: [],
-      lastRead: {},
       loading: false
     }
   },
@@ -61,46 +60,12 @@ export default {
         this.loading = false
         this.books = response.data.slice(0, 48)
       })
-    },
-
-    read (book) {
-      const self = this
-      const id = book.id.split('/')[2]
-      this.lastRead = book
-      this.axios.post('/book/' + id + '/read')
-        .then(self.successToast)
-        .catch(self.errorToast)
-    },
-
-    successToast () {
-      this.$bvToast.toast(this.$t('readSuccess.message', { title: this.lastRead.title }), {
-        title: this.$t('readSuccess.title'),
-        solid: true,
-        variant: 'info',
-        autoHideDelay: 5000,
-        appendToast: true
-      })
-    },
-
-    errorToast (error) {
-      self.$bvToast.toast(error.message, {
-        title: self.$t('error'),
-        solid: true,
-        variant: 'danger',
-        autoHideDelay: 5000,
-        appendToast: true
-      })
     }
   },
   i18n: {
     messages: {
       en: {
-        callToAction: 'What have you read lately?',
-        error: 'Error',
-        readSuccess: {
-          title: 'Book Read',
-          message: '{title} has been added to your feed'
-        }
+        callToAction: 'What have you read lately?'
       }
     }
   }

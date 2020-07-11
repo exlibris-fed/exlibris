@@ -28,9 +28,9 @@
         </p>
       </b-card-text>
       <b-button
-        @click="readBook"
+        @click="read"
       >
-        {{ $t('read') }}
+        {{ $t('read.imperative') }}
       </b-button>
     </b-card>
   </b-col>
@@ -39,12 +39,20 @@
     v-else-if="type === 'list'"
     :to="{ name: 'book', params: { book: idSlug } }"
   >
-    <h3>{{ book.title }}</h3>
+    <h3>
+      {{ book.title }}
+      <small
+        v-if="authors"
+        class="text-muted"
+      >
+        {{ $t('attribution') }} {{ authors }}
+      </small>
+    </h3>
     <p
-      v-if="authors"
+      v-if="book.timestamp"
       class="text-muted"
     >
-      {{ $t('attribution') }} {{ authors }}
+      {{ $t('read.pastTense') }} {{ $d(new Date(), 'short') }}
     </p>
   </b-list-group-item>
 
@@ -74,9 +82,9 @@
           {{ $t('published') }} {{ published }}
         </p>
         <b-button
-          @click="readBook"
+          @click="read"
         >
-          {{ $t('read') }}
+          {{ $t('read.imperative') }}
         </b-button>
       </b-col>
     </b-row>
@@ -99,8 +107,16 @@ export default {
       en: {
         attribution: 'By',
         published: 'Published',
-        read: "I've Read This",
-        review: 'Write A Review'
+        read: {
+          imperative: "I've Read This",
+          pastTense: 'Read'
+        },
+        review: 'Write A Review',
+        error: 'Error',
+        readSuccess: {
+          title: 'Book Read',
+          message: '{title} has been added to your feed'
+        }
       }
     }
   },
@@ -108,6 +124,10 @@ export default {
     book: {
       type: Object,
       required: true
+    },
+    axios: {
+      type: Function,
+      default: null // not always required, as you can't always read
     },
     type: {
       type: String,
@@ -145,8 +165,38 @@ export default {
     }
   },
   methods: {
-    readBook: function () {
-      this.$emit('read', this.book)
+    read () {
+      if (this.axios === null) {
+        this.errorToast(new TypeError('cannot perform http request'))
+        return
+      }
+
+      const self = this
+      const id = this.book.id.split('/')[2]
+      this.lastRead = this.book
+      this.axios.post('/book/' + id + '/read')
+        .then(self.successToast)
+        .catch(self.errorToast)
+    },
+
+    successToast () {
+      this.$bvToast.toast(this.$t('readSuccess.message', { title: this.book.title }), {
+        title: this.$t('readSuccess.title'),
+        solid: true,
+        variant: 'info',
+        autoHideDelay: 5000,
+        appendToast: true
+      })
+    },
+
+    errorToast (error) {
+      this.$bvToast.toast(error.message, {
+        title: this.$t('error'),
+        solid: true,
+        variant: 'danger',
+        autoHideDelay: 5000,
+        appendToast: true
+      })
     }
   }
 }
