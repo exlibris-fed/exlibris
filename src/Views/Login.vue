@@ -1,5 +1,12 @@
 <template>
   <div id="container">
+    <b-alert
+      v-if="action === 'register'"
+      show
+      variant="primary"
+    >
+      {{ $t('actions.register') }}
+    </b-alert>
     <LoginForm
       :bounceto="bounceto"
       @resendVerificationEmail="resendVerificationEmail"
@@ -23,6 +30,10 @@ export default {
     bounceto: {
       type: String,
       default: '/'
+    },
+    action: {
+      type: String,
+      default: null
     }
   },
   // this blindly assumes that having *an* auth token means a user is logged in.
@@ -63,7 +74,10 @@ export default {
           title: 'Email sent',
           body: 'Check your email for the code'
         },
-        error: 'Error'
+        error: 'Error',
+        actions: {
+          register: 'Thank you for registering! Check your email for a verification code.'
+        }
       }
     }
   }
