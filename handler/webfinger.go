@@ -2,13 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"strings"
 
 	"github.com/exlibris-fed/exlibris/dto"
-	"github.com/exlibris-fed/exlibris/model"
+	"github.com/exlibris-fed/exlibris/infrastructure/users"
 )
 
 // AccountURIScheme is the string "acct" as specified in RFC 7565
@@ -49,11 +50,14 @@ func (h *Handler) HandleWebfinger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var user model.User
-	if err := h.db.Where("username = ?", username[0]).
-		First(&user).Error; err != nil {
+	user, err := h.usersRepo.GetByUsername(username[0])
+	if err != nil {
 		// TODO may not be a 404
-		w.WriteHeader(http.StatusNotFound)
+		if errors.Is(err, users.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+		} else {
+			w.WriteHeader(http.StatusServiceUnavailable)
+		}
 		return
 	}
 

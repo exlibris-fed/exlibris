@@ -15,7 +15,7 @@ import (
 // GetReads returns a list of books a user has read
 func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 	c := r.Context()
-	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(model.User)
+	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(*model.User)
 	if !ok {
 		log.Println("No user")
 		// the middleware should have required this already
@@ -23,23 +23,20 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reads := []model.Read{}
+	reads := []*model.Read{}
 	response := []dto.Read{}
 
-	if err := h.db.Where("user_id = ?", user.ID).Find(&reads).Error; err != nil {
+	reads, err := h.readsRepo.Get(user)
+
+	if err != nil {
 		// Error searching
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
 		return
 	}
 	for _, read := range reads {
-		var book model.Book
-		if err := h.db.Preload("Authors").Where(&model.Book{OpenLibraryID: read.BookID}).First(&book).Error; err != nil {
-			log.Println(err)
-			continue
-		}
-		bookDTO := dto.Read{Book: dto.Book{ID: book.OpenLibraryID, Title: book.Title, Published: time.Unix(int64(book.Published), 0), Description: book.Description}, Timestamp: read.CreatedAt}
-		for _, author := range book.Authors {
+		bookDTO := dto.Read{Book: dto.Book{ID: read.Book.OpenLibraryID, Title: read.Book.Title, Published: time.Unix(int64(read.Book.Published), 0), Description: read.Book.Description}, Timestamp: read.CreatedAt}
+		for _, author := range read.Book.Authors {
 			bookDTO.Authors = append(bookDTO.Authors, author.Name)
 		}
 		response = append(response, bookDTO)
@@ -84,7 +81,7 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		BookID: book.OpenLibraryID,
 		Book:   *book,
 	}
-	h.db.Create(&read)
+	h.readsRepo.Create(&read)
 
 	//go h.ap.Federate(c, user, read)
 
