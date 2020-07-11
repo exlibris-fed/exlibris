@@ -1,15 +1,16 @@
 package middleware
 
 import (
+	"github.com/exlibris-fed/exlibris/infrastructure/users"
 	"github.com/jinzhu/gorm"
 )
 
 type Middleware struct {
-	db *gorm.DB
+	userRepo *users.Repository
 }
 
 func New(db *gorm.DB) *Middleware {
 	return &Middleware{
-		db: db,
+		userRepo: users.New(db),
 	}
 }

@@ -15,11 +15,12 @@ type ReviewRequest struct {
 }
 
 func (h *Handler) Review(w http.ResponseWriter, r *http.Request) {
-	log.Println("Review handler")
 	c := r.Context()
-	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(model.User)
+	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(*model.User)
 
 	if !ok {
+		log.Println("user not found")
+		w.WriteHeader(http.StatusUnauthorized)
 		// error
 		return
 	}
@@ -50,7 +51,7 @@ func (h *Handler) Review(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var review *model.Review
-		review, err = h.reviewsRepo.CreateReview(&user, id, reviewData.Review, 0)
+		review, err = h.reviewsRepo.CreateReview(user, id, reviewData.Review, 0)
 		reviews = []*model.Review{review}
 	} else {
 		log.Println("Bad request")

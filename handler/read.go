@@ -23,17 +23,17 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	reads := []*model.Read{}
 	response := []dto.Read{}
 
 	reads, err := h.readsRepo.Get(user)
 
 	if err != nil {
 		// Error searching
-		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+
 	for _, read := range reads {
 		bookDTO := dto.Read{Book: dto.Book{ID: read.Book.OpenLibraryID, Title: read.Book.Title, Published: time.Unix(int64(read.Book.Published), 0), Description: read.Book.Description}, Timestamp: read.CreatedAt}
 		for _, author := range read.Book.Authors {
@@ -41,6 +41,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 		}
 		response = append(response, bookDTO)
 	}
+
 	b, err := json.Marshal(response)
 	if err != nil {
 		log.Println("error marshalling json: " + err.Error())
@@ -62,7 +63,7 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["book"]
 	c := r.Context()
-	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(model.User)
+	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(*model.User)
 	if !ok {
 		// the middleware should have required this already
 		log.Println("Could not get user")
@@ -77,7 +78,7 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 			ID: uuid.New(),
 		},
 		UserID: user.ID,
-		User:   user,
+		User:   *user,
 		BookID: book.OpenLibraryID,
 		Book:   *book,
 	}
