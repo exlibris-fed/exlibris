@@ -21,15 +21,15 @@ type Repository struct {
 }
 
 func (r *Repository) GetByID(id string) (*model.Author, error) {
-	var author *model.Author
+	var author model.Author
 	result := r.db.Preload("Books").
 		Where("open_library_id = ?", id).
-		First(author)
+		First(&author)
 	if result.Error != nil {
 		return nil, ErrNotFound
 	}
 
-	return author, nil
+	return &author, nil
 }
 
 func (r *Repository) Create(author *model.Author) (*model.Author, error) {

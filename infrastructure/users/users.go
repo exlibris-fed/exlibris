@@ -24,16 +24,16 @@ type Repository struct {
 }
 
 func (r *Repository) GetByUsername(name string) (*model.User, error) {
-	var user *model.User
+	var user model.User
 	result := r.db.Where("username = ?", name).
-		First(user)
+		First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound
 		}
 		return nil, ErrStorage
 	}
-	return user, nil
+	return &user, nil
 }
 
 func (r *Repository) Create(user *model.User, key *model.RegistrationKey) (*model.User, error) {
@@ -70,10 +70,11 @@ func (r *Repository) Save(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-func (r *Repository) Activate(user *model.User, key *model.RegistrationKey) error {
+func (r *Repository) Activate(key *model.RegistrationKey) error {
+	user := key.User
 	return r.db.Transaction(func(tx *gorm.DB) error {
 		user.Verified = true
-		if _, err := r.Save(user); err != nil {
+		if _, err := r.Save(&user); err != nil {
 			return err
 		}
 		if err := registrationkeys.New(r.db).Delete(key); err != nil {

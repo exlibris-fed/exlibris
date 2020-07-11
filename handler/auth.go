@@ -196,7 +196,7 @@ func (h *Handler) VerifyKey(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.usersRepo.Activate(&registrationKey.User, registrationKey); err != nil {
+	if err := h.usersRepo.Activate(registrationKey); err != nil {
 		log.Printf("error activating user %s: %s", registrationKey.User.Username, err.Error())
 		w.WriteHeader(http.StatusInternalServerError)
 	}

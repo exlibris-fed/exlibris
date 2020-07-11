@@ -38,17 +38,17 @@ func (r *Repository) GetByUsername(name string) (*model.RegistrationKey, error) 
 }
 
 func (r *Repository) Get(id uuid.UUID) (*model.RegistrationKey, error) {
-	var registrationKey *model.RegistrationKey
+	var registrationKey model.RegistrationKey
 	result := r.db.Preload("User").
 		Where("key = ?", id).
-		First(registrationKey)
+		First(&registrationKey)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound
 		}
 		return nil, ErrStorage
 	}
-	return registrationKey, nil
+	return &registrationKey, nil
 }
 
 func (r *Repository) Create(key *model.RegistrationKey) (*model.RegistrationKey, error) {

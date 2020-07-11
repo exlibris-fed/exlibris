@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrNotFound = errors.New("reads could not be found for user")
+	ErrNotFound   = errors.New("reads could not be found for user")
 	ErrNotCreated = errors.New("read could not be saved")
 )
 
@@ -25,6 +25,7 @@ func (r *Repository) Get(user *model.User) ([]*model.Read, error) {
 	result := r.db.Preload("Book").
 		Preload("Book.Authors").
 		Where("user_id = ?", user.ID).
+		Order("created_at desc").
 		Find(&reads)
 	if result.Error != nil {
 		return nil, ErrNotFound
