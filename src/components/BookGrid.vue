@@ -5,7 +5,7 @@
       :key="book.id"
       type="card"
       :book="book"
-      @read="readBook"
+      :axios="axios"
     />
   </b-row>
 </template>
@@ -21,6 +21,10 @@ export default {
   props: {
     books: {
       type: Array,
+      required: true
+    },
+    axios: {
+      type: Function,
       required: true
     }
   },

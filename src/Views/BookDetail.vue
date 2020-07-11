@@ -2,6 +2,7 @@
   <Book
     v-if="book"
     :book="book"
+    :axios="axios"
   />
   <b-spinner
     v-else
