@@ -100,7 +100,7 @@ func main() {
 	// App
 	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)
 	r.HandleFunc("/.well-known/webfinger", h.HandleWebfinger)
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./dist/")))
+	r.PathPrefix("/").Handler(http.HandlerFunc(h.HandleStaticFile))
 	corsRouter := handlers.CORS(handlers.AllowedOrigins([]string{"*"}),
 		handlers.AllowedHeaders([]string{"Content-Type", "Authorization", "Access-Control-Allow-Origin"}))
 	loggedRouter := handlers.LoggingHandler(os.Stdout, corsRouter(r))
