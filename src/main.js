@@ -26,7 +26,14 @@ const routes = [
   { path: '/', component: HomePage, name: 'home' },
   { path: '/user/:user', component: ProfilePage, name: 'profile', alias: '/@:user' },
   { path: '/book/:book', component: BookDetail, name: 'book' },
-  { path: '/login', component: LoginPage, name: 'login' },
+  {
+    path: '/login',
+    component: LoginPage,
+    name: 'login',
+    props: (route) => ({
+      action: route.query.action
+    })
+  },
   { path: '/logout', component: LogoutPage, name: 'logout' },
   { path: '/register', component: Register, name: 'register' },
   { path: '/verify/:key', component: Verify, name: 'verify' }
