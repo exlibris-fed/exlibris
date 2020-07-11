@@ -26,7 +26,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 	reads := []model.Read{}
 	response := []dto.Read{}
 
-	if err := h.db.Where("user_id = ?", user.ID).Find(&reads).Error; err != nil {
+	if err := h.db.Where("user_id = ?", user.ID).Order("created_at desc").Find(&reads).Error; err != nil {
 		// Error searching
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println(err)
