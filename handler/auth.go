@@ -133,7 +133,12 @@ func (h *Handler) Authenticate(w http.ResponseWriter, r *http.Request) {
 	user, err := h.usersRepo.GetByUsername(request.Username)
 	if err != nil {
 		// Something went wrong
+		if errors.Is(err, users.ErrNotFound) {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
 	if user.PrivateKey == nil {
 		w.WriteHeader(http.StatusUnauthorized)
