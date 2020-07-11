@@ -61,7 +61,12 @@
       class="mb-3"
     >
       <b-col
-        cols="4"
+        xl="4"
+        lg="5"
+        md="6"
+        sm="8"
+        xs="12"
+        class="text-center"
       >
         <b-img
           :src="coverImageLg"
