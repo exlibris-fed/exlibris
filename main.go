@@ -14,17 +14,13 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
 	cfg := config.Load()
 
-	db, err := gorm.Open("postgres", cfg.DSN)
-	if err != nil {
-		log.Fatalf("unable to connect to database: %s", err)
-	}
+	db := infrastructure.New(cfg.DSN)
 	defer db.Close()
 
 	infrastructure.Migrate(db)

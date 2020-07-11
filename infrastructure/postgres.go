@@ -1,9 +1,19 @@
 package infrastructure
 
 import (
+	"log"
+
 	"github.com/exlibris-fed/exlibris/model"
 	"github.com/jinzhu/gorm"
 )
+
+func New(dsn string) *gorm.DB {
+	db, err := gorm.Open("postgres", dsn)
+	if err != nil {
+		log.Fatalf("unable to connect to database: %s", err)
+	}
+	return db
+}
 
 func Migrate(db *gorm.DB) {
 
