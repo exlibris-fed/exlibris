@@ -19,7 +19,7 @@
       {{ $t('profile') }}
     </b-dropdown-item>
     <b-dropdown-item
-      to="logout"
+      to="/logout"
     >
       {{ $t('logout') }}
     </b-dropdown-item>
