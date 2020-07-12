@@ -313,13 +313,13 @@ func (d *Database) SetOutbox(c context.Context, inbox vocab.ActivityStreamsOrder
 	return nil
 }
 
-// NewId creates a new IRI id for the provided activity or object. The
+// NewID creates a new IRI id for the provided activity or object. The
 // implementation does not need to set the 'id' property and simply
 // needs to determine the value.
 //
 // The go-fed library will handle setting the 'id' property on the
 // activity or object provided with the value returned.
-func (d *Database) NewId(c context.Context, t vocab.Type) (id *url.URL, err error) {
+func (d *Database) NewID(c context.Context, t vocab.Type) (id *url.URL, err error) {
 	userI := c.Value(model.ContextKeyAuthenticatedUser)
 	if userI == nil {
 		return nil, fmt.Errorf("no authenticated user in context")
