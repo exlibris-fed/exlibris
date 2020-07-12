@@ -35,7 +35,15 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 	}
 
 	for _, read := range reads {
-		bookDTO := dto.Read{Book: dto.Book{ID: read.Book.OpenLibraryID, Title: read.Book.Title, Published: time.Unix(int64(read.Book.Published), 0), Description: read.Book.Description}, Timestamp: read.CreatedAt}
+		bookDTO := dto.Read{
+			Book: dto.Book{
+				ID:          read.Book.OpenLibraryID,
+				Title:       read.Book.Title,
+				Published:   time.Unix(int64(read.Book.Published), 0),
+				Description: read.Book.Description,
+			},
+			Timestamp: read.CreatedAt,
+		}
 		for _, author := range read.Book.Authors {
 			bookDTO.Authors = append(bookDTO.Authors, author.Name)
 		}
@@ -71,16 +79,21 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	book := h.bookService.Get(id)
+	book, err := h.bookService.Get(id)
+
+	if err != nil {
+		log.Println("could not fetch book for read", err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
 	read := model.Read{
 		Base: model.Base{
 			ID: uuid.New(),
 		},
-		UserID: user.ID,
 		User:   *user,
-		BookID: book.OpenLibraryID,
 		Book:   *book,
+		BookID: book.OpenLibraryID,
 	}
 	h.readsRepo.Create(&read)
 

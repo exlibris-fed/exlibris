@@ -3,6 +3,7 @@ package reviews
 import (
 	"errors"
 	"fmt"
+	"log"
 
 	"github.com/exlibris-fed/exlibris/infrastructure/books"
 	"github.com/exlibris-fed/exlibris/model"
@@ -13,6 +14,7 @@ import (
 var (
 	ErrNotFound   = errors.New("reviews could not be found for book")
 	ErrNotCreated = errors.New("review for book could not be created")
+	ErrStorage    = errors.New("could not retrieve data")
 )
 
 func New(db *gorm.DB) *Repository {
@@ -35,7 +37,11 @@ func (r *Repository) CreateReview(user *model.User, id string, text string, rati
 	// @TODO: rating
 	book, err := books.New(r.db).GetByID(id)
 	if err != nil {
-		return nil, fmt.Errorf("error finding book: %w", ErrNotCreated)
+		if errors.Is(err, books.ErrNotFound) {
+			return nil, fmt.Errorf("error book does not exist: %w", ErrNotFound)
+		}
+		log.Println("could not retrieve book", err)
+		return nil, fmt.Errorf("error finding book: %w", ErrStorage)
 	}
 
 	review := &model.Review{

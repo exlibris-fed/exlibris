@@ -21,7 +21,7 @@ type Book struct {
 	Authors       []Author  `gorm:"many2many:book_authors;null"`
 	Subjects      []Subject `gorm:"many2many:book_subjects;null"`
 	Description   string    `gorm:"null" json:"description"`
-	Covers        []Cover   `gorm:"many2many:book_covers;null" json:"covers"`
+	Covers        []Cover   `gorm:"foreignkey:BookID;association_foreignkey:OpenLibraryID;null" json:"covers"`
 }
 
 // NewBook returns a new instance of a book

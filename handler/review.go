@@ -2,10 +2,12 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 
 	"github.com/exlibris-fed/exlibris/dto"
+	reviewsinfra "github.com/exlibris-fed/exlibris/infrastructure/reviews"
 	"github.com/exlibris-fed/exlibris/model"
 	"github.com/gorilla/mux"
 )
@@ -52,6 +54,11 @@ func (h *Handler) Review(w http.ResponseWriter, r *http.Request) {
 
 		var review *model.Review
 		review, err = h.reviewsRepo.CreateReview(user, id, reviewData.Review, 0)
+		if errors.Is(err, reviewsinfra.ErrNotFound) {
+			// Trying to create a review about a book no one has viewed or read
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
 		reviews = []*model.Review{review}
 	} else {
 		log.Println("Bad request")

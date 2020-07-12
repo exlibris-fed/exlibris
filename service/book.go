@@ -1,6 +1,7 @@
 package service
 
 import (
+	"fmt"
 	"log"
 	"strings"
 
@@ -23,36 +24,33 @@ type Book struct {
 	bookRepository *books.Repository
 }
 
-func (b *Book) Get(id string) *model.Book {
+func (b *Book) Get(id string) (*model.Book, error) {
 	var book *model.Book
 	var err error
 	if book, err = b.bookRepository.GetByID(id); err != nil {
 		// Error finding book in DB
-		data := b.fetch(id)
-		if data == nil {
-			return nil
+		data, err := b.fetch(id)
+		if err != nil {
+			return nil, err
 		}
 		book = data
 	}
 
-	return book
+	return book, nil
 }
 
-func (b *Book) fetch(id string) *model.Book {
+func (b *Book) fetch(id string) (*model.Book, error) {
 	// fetch book from API
 	work, err := openlibrary.GetWorkByID(id)
 	if err != nil {
-		log.Println("Could not fetch work", id, "got error", err)
-
-		return nil
+		return nil, fmt.Errorf("could not fetch work: %w", err)
 	}
 
 	// Fetch editions to get date published
 	editions, err := openlibrary.GetEditionsByID(id)
 	// @TODO: Persist editions?
 	if err != nil {
-		log.Println("Could not fetch work editions", id, "got error", err)
-		return nil
+		return nil, fmt.Errorf("could not fetch editions of work: %w", err)
 	}
 
 	// Gather up the authors
@@ -71,10 +69,9 @@ func (b *Book) fetch(id string) *model.Book {
 
 	result, err := b.bookRepository.Create(book)
 	if err != nil {
-		log.Println("Could not insert book into DB:", err)
-		return nil
+		return nil, fmt.Errorf("could not save work: %w", err)
 	}
-	return result
+	return result, nil
 }
 
 func NewAuthor(db *gorm.DB) *Author {
@@ -106,7 +103,6 @@ func (a *Author) Get(id string) *model.Author {
 func (a *Author) fetch(id string) *model.Author {
 	author, err := openlibrary.GetAuthorByID(strings.Replace(id, "/authors/", "", 1))
 	if err != nil {
-		log.Println("could not fetch author", err)
 		return nil
 	}
 	authorModel := model.NewAuthor(author)
