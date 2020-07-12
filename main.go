@@ -10,54 +10,20 @@ import (
 	"github.com/exlibris-fed/exlibris/config"
 	"github.com/exlibris-fed/exlibris/handler"
 	"github.com/exlibris-fed/exlibris/handler/middleware"
-	"github.com/exlibris-fed/exlibris/model"
+	"github.com/exlibris-fed/exlibris/infrastructure"
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/postgres"
 )
 
 func main() {
 	cfg := config.Load()
 
-	db, err := gorm.Open("postgres", cfg.DSN)
-	if err != nil {
-		log.Fatalf("unable to connect to database: %s", err)
-	}
+	db := infrastructure.New(cfg.DSN)
 	defer db.Close()
 
-	db.AutoMigrate(model.Author{})
-	db.AutoMigrate(model.APObject{})
-	db.AutoMigrate(model.Book{})
-	db.AutoMigrate(model.OutboxEntry{})
-	db.AutoMigrate(model.Read{})
-	db.AutoMigrate(model.Review{})
-	db.AutoMigrate(model.Subject{})
-	db.AutoMigrate(model.User{})
-	db.AutoMigrate(model.RegistrationKey{})
-	db.AutoMigrate(model.Cover{})
-
-	db.Model(&model.APObject{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
-	db.Model(&model.APObject{}).AddForeignKey("read_id", "reads(id)", "CASCADE", "CASCADE")
-
-	db.Table("book_authors").AddForeignKey("author_open_library_id", "authors(open_library_id)", "CASCADE", "CASCADE")
-	db.Table("book_authors").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
-
-	db.Table("book_subjects").AddForeignKey("subject_id", "subjects(id)", "CASCADE", "CASCADE")
-	db.Table("book_subjects").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
-
-	db.Table("book_covers").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
-	db.Table("book_covers").AddForeignKey("cover_id", "covers(id)", "CASCADE", "CASCADE")
-
-	db.Model(&model.OutboxEntry{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
-
-	db.Model(&model.Read{}).AddForeignKey("book_id", "books(open_library_id)", "CASCADE", "CASCADE")
-	db.Model(&model.Read{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
-
-	db.Model(&model.Review{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
-	db.Model(&model.Review{}).AddForeignKey("book_id", "books(open_library_id)", "CASCADE", "CASCADE")
-	db.Model(&model.RegistrationKey{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
+	infrastructure.Migrate(db)
 
 	h := handler.New(db, cfg)
 	m := middleware.New(db)

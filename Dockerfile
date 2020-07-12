@@ -1,4 +1,4 @@
-FROM golang:1.12-alpine as gobuilder
+FROM golang:1.14-alpine as gobuilder
 
 RUN apk update && apk upgrade && apk add --no-cache bash git openssh ca-certificates build-base sudo alpine-sdk
 WORKDIR /build

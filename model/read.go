@@ -17,7 +17,7 @@ const (
 // Read is a many to many model describing a user who read a book. Because GORM does weird things with foreign keys we need to do it manually, unfortunately.
 type Read struct {
 	Base
-	Book   Book
+	Book   Book `gorm:"foreignkey:OpenLibraryID;association_foreignkey:BookID"`
 	BookID string
 	User   User
 	UserID uuid.UUID

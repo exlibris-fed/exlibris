@@ -21,8 +21,8 @@ func (h *Handler) GetBook(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["book"]
 
-	book := h.bookService.Get(id)
-	if book == nil {
+	book, err := h.bookService.Get(id)
+	if err != nil {
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
