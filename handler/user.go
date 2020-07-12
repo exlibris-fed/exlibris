@@ -2,14 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
-	"strings"
 
 	"github.com/exlibris-fed/exlibris/dto"
+	"github.com/exlibris-fed/exlibris/infrastructure/users"
 	"github.com/exlibris-fed/exlibris/key"
-	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/gorilla/mux"
 )
@@ -23,15 +23,13 @@ func (h *Handler) HandleActivityPubProfile(w http.ResponseWriter, r *http.Reques
 		return
 	}
 
-	var user model.User
-	if err := h.db.Where("username = ?", username).
-		First(&user).Error; err != nil {
-		if strings.Contains(err.Error(), "record not found") {
-			w.WriteHeader(http.StatusNotFound)
-		} else {
-			log.Printf("error retrieving user %s: %s", username, err.Error())
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+	user, err := h.usersRepo.GetByUsername(username)
+	if err != nil && errors.Is(err, users.ErrNotFound) {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	} else if err != nil && errors.Is(err, users.ErrStorage) {
+		log.Printf("error retrieving user %s: %s", username, err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 

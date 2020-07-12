@@ -19,10 +19,9 @@ func (m *Middleware) WithUserModel(next http.Handler) http.Handler {
 			return
 		}
 
-		var user model.User
-		m.db.Where("username = ?", username).First(&user)
+		user, err := m.userRepo.GetByUsername(username)
 
-		if user.ID == uuid.Nil {
+		if err != nil || user.ID == uuid.Nil {
 			log.Printf("user %s not present in database in UserModel middleware", username)
 			next.ServeHTTP(w, r)
 			return
