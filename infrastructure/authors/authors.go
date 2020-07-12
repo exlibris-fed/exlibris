@@ -2,6 +2,7 @@ package authors
 
 import (
 	"errors"
+	"log"
 
 	"github.com/exlibris-fed/exlibris/model"
 	"github.com/jinzhu/gorm"
@@ -26,6 +27,7 @@ func (r *Repository) GetByID(id string) (*model.Author, error) {
 		Where("open_library_id = ?", id).
 		First(&author)
 	if result.Error != nil {
+		log.Println(result.Error)
 		return nil, ErrNotFound
 	}
 
