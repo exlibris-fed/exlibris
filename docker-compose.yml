@@ -3,7 +3,7 @@ services:
   app:
     depends_on:
       - db
-    image: exlibris:latest
+    image: exlibris-fed/exlibris:latest
     ports:
       - 8080:8080
     env_file:
@@ -15,8 +15,12 @@ services:
       - db.env
     volumes:
       - db-data:/var/lib/postgres/data
-    ports:
-      - 5432:5432
+
+  watchtower:
+    image: containrrr/watchtower
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    command: --cleanup
 
 volumes:
   db-data:
