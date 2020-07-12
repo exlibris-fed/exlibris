@@ -85,6 +85,8 @@
 </template>
 
 <script>
+import axios from 'axios'
+
 export default {
   name: 'LoginForm',
   props: {
@@ -105,6 +107,35 @@ export default {
     }
   },
   methods: {
+    login (e) {
+      e && e.preventDefault()
+      axios.post(process.env.VUE_APP_API_ORIGIN + '/authenticate', {
+        username: this.username,
+        password: this.password
+      })
+        .then(response => {
+          if (!response || !response.data || !response.data.bearer) {
+            this.errorMessage = this.$t('errors.badPassword')
+            return
+          }
+          this.errorMessage = ''
+          localStorage.setItem('auth', response.data.bearer)
+          this.$root.$emit('login')
+          this.$router.push(this.bounceto)
+        })
+        .catch(error => {
+          if (error.response && error.response.status === 401) {
+            this.errorMessage = 'badPassword'
+            return
+          }
+          if (error.response && error.response.status === 403) {
+            this.errorMessage = 'notVerified'
+            return
+          }
+          this.errorMessage = 'unknown'
+          console.error(error)
+        })
+    },
     resendVerificationEmail () {
       this.$emit('resendVerificationEmail', this.username)
     }
