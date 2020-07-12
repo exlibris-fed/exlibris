@@ -5,11 +5,9 @@ import (
 	"github.com/exlibris-fed/exlibris/config"
 	"github.com/exlibris-fed/exlibris/infrastructure/authors"
 	"github.com/exlibris-fed/exlibris/infrastructure/books"
-	"github.com/exlibris-fed/exlibris/infrastructure/covers"
 	"github.com/exlibris-fed/exlibris/infrastructure/reads"
 	"github.com/exlibris-fed/exlibris/infrastructure/registrationkeys"
 	"github.com/exlibris-fed/exlibris/infrastructure/reviews"
-	"github.com/exlibris-fed/exlibris/infrastructure/subjects"
 	"github.com/exlibris-fed/exlibris/infrastructure/users"
 	"github.com/exlibris-fed/exlibris/service"
 
@@ -25,9 +23,7 @@ type Handler struct {
 	editionsService      *service.Editions
 	booksRepo            *books.Repository
 	reviewsRepo          *reviews.Repository
-	subjectsRepo         *subjects.Repository
 	authorsRepo          *authors.Repository
-	coversRepo           *covers.Repository
 	usersRepo            *users.Repository
 	readsRepo            *reads.Repository
 	registrationKeysRepo *registrationkeys.Repository
@@ -43,9 +39,7 @@ func New(db *gorm.DB, cfg *config.Config) *Handler {
 		editionsService:      service.NewEditions(db),
 		booksRepo:            books.New(db),
 		reviewsRepo:          reviews.New(db),
-		subjectsRepo:         subjects.New(db),
 		authorsRepo:          authors.New(db),
-		coversRepo:           covers.New(db),
 		usersRepo:            users.New(db),
 		readsRepo:            reads.New(db),
 		registrationKeysRepo: registrationkeys.New(db),
