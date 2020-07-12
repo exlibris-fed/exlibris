@@ -2,6 +2,7 @@ package model
 
 import (
 	"fmt"
+	"log"
 	"net/url"
 
 	"github.com/go-fed/activity/streams"
@@ -28,11 +29,13 @@ func (r *Read) ToType() vocab.Type {
 	read := streams.NewActivityStreamsRead()
 
 	u, err := url.Parse(fmt.Sprintf("https://%s/%s", r.User.ID, r.ID))
-	if err == nil {
-		id := streams.NewJSONLDIdProperty()
-		id.SetIRI(u)
-		read.SetJSONLDId(id)
+	if err != nil {
+		log.Printf("error generating user ID for read '%s': %s", r.ID, err.Error())
+		return nil
 	}
+	id := streams.NewJSONLDIdProperty()
+	id.SetIRI(u)
+	read.SetJSONLDId(id)
 
 	actor := streams.NewActivityStreamsActorProperty()
 	actor.AppendActivityStreamsPerson(r.User.ToType().(vocab.ActivityStreamsPerson))
@@ -41,6 +44,13 @@ func (r *Read) ToType() vocab.Type {
 	document := streams.NewActivityStreamsObjectProperty()
 	document.AppendActivityStreamsDocument(r.Book.ToType().(vocab.ActivityStreamsDocument))
 	read.SetActivityStreamsObject(document)
+
+	toProperty := streams.NewActivityStreamsToProperty()
+	toProperty.AppendIRI(r.User.FollowersIRI())
+	if PublicActivityPubIRI != nil {
+		toProperty.AppendIRI(PublicActivityPubIRI)
+	}
+	read.SetActivityStreamsTo(toProperty)
 
 	return read
 }

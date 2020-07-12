@@ -97,7 +97,9 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 	}
 	h.readsRepo.Create(&read)
 
-	//go h.ap.Federate(c, user, read)
+	if _, err := h.actor.Send(c, user.OutboxIRI(), read.ToType()); err != nil {
+		log.Printf("error sending to outbox for read %s: %s", read.ID, err.Error())
+	}
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

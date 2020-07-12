@@ -5,12 +5,14 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"github.com/exlibris-fed/exlibris/activitypub/clock"
 	"github.com/exlibris-fed/exlibris/activitypub/database"
-	//"github.com/exlibris-fed/exlibris/model"
+	"github.com/exlibris-fed/exlibris/model"
 
 	"github.com/go-fed/activity/pub"
+	"github.com/gorilla/mux"
 	//"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
 	//"github.com/go-fed/httpsig"
@@ -45,10 +47,35 @@ func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 	)
 }
 
+func (ap *ActivityPub) NewStreamsHandler() pub.HandlerFunc {
+	return pub.NewActivityStreamsHandler(ap.db, ap.clock)
+}
+
 // ----- Common ----- //
+// AuthenticateGetInbox determines if the request is allowed to access the inbox for a given user.
+//
+// TODO should it return an error instead of just not authenticated?
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
-	// TODO
 	log.Println("auth get inbox")
+	vars := mux.Vars(r)
+	username, ok := vars["username"]
+	if !ok {
+		return
+	}
+	user, ok := c.Value(model.ContextKeyAuthenticatedUser).(model.User)
+	if !ok {
+		// not logged in at all
+		return
+	}
+
+	// determine if the user is accessing their own
+	if strings.ToLower(username) != strings.ToLower(user.Username) {
+		return
+	}
+
+	// all good, get the inbox
+	out = c
+	authenticated = true
 	return
 }
 
@@ -104,13 +131,13 @@ func (ap *ActivityPub) DefaultCallback(c context.Context, activity pub.Activity)
 func (ap *ActivityPub) MaxInboxForwardingRecursionDepth(c context.Context) int {
 	// TODO
 	log.Println("max inbox fwd recursion")
-	return -1
+	return 25
 }
 
 func (ap *ActivityPub) MaxDeliveryRecursionDepth(c context.Context) int {
 	// TODO
 	log.Println("ma delivery rec")
-	return -1
+	return 25
 }
 
 func (ap *ActivityPub) FilterForwarding(c context.Context, potentialRecipients []*url.URL, a pub.Activity) (filteredRecipients []*url.URL, err error) {
@@ -119,8 +146,9 @@ func (ap *ActivityPub) FilterForwarding(c context.Context, potentialRecipients [
 	return
 }
 
+// GetInbox retrieves a user's inbox. AuthenticateGetInbox already verified that the authenticated user exists and is accessing their own profile.
 func (ap *ActivityPub) GetInbox(c context.Context, r *http.Request) (vocab.ActivityStreamsOrderedCollectionPage, error) {
 	// TODO
 	log.Println("get inbox")
-	return nil, nil
+	return ap.db.GetInbox(c, r.URL)
 }

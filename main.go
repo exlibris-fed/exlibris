@@ -53,9 +53,7 @@ func main() {
 	ap.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
 	ap.Handle("/user/{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
 	ap.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
-	ap.Handle("/@{username}", http.HandlerFunc(h.HandleActivityPubProfile))
-	ap.Handle("/@{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
-	ap.Handle("/@{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
+	ap.PathPrefix("/").Handler(http.HandlerFunc(h.HandleActivityPubAction))
 
 	// JSON handlers. may not be needed? Hackathon!!
 	jsonRouter := r.Headers("Accept", "application/json").Subrouter()

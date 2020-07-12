@@ -54,6 +54,7 @@ func (d *Database) Lock(c context.Context, id *url.URL) error {
 		lock = new(sync.Mutex)
 		d.locks[id] = lock
 	}
+	log.Println("locking")
 	lock.Lock()
 	return nil
 }
@@ -195,41 +196,47 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 // Under certain conditions and network activities, Create may be called
 // multiple times for the same ActivityStreams object.
 func (d *Database) Create(c context.Context, asType vocab.Type) error {
-	// TODO what if this isnt a read?
-	jid := asType.GetJSONLDId()
-	id, err := jid.Serialize()
-	if err != nil {
-		return err
-	}
-	pieces := regexpID.FindStringSubmatch(id.(string))
+	s, err := asType.Serialize()
+	log.Printf("%+v", s)
+	log.Println(err)
+	return nil
+	/*
+		// TODO what if this isnt a read?
+		jid := asType.GetJSONLDId()
+		id, err := jid.Serialize()
+		if err != nil {
+			return err
+		}
+		pieces := regexpID.FindStringSubmatch(id.(string))
 
-	u, err := uuid.Parse(pieces[2])
-	if err != nil {
-		return err
-	}
-	bytes, err := u.MarshalBinary()
-	if err != nil {
-		return err
-	}
+		u, err := uuid.Parse(pieces[2])
+		if err != nil {
+			return err
+		}
+		bytes, err := u.MarshalBinary()
+		if err != nil {
+			return err
+		}
 
-	var i int
-	d.DB.Model(model.Read{}).Where("id = ?", bytes).Count(&i)
+		var i int
+		d.DB.Model(model.Read{}).Where("id = ?", bytes).Count(&i)
 
-	// we already have this in the database, don't create it again
-	if i == 1 {
-		return nil
-	}
+		// we already have this in the database, don't create it again
+		if i == 1 {
+			return nil
+		}
 
-	readI := c.Value(model.ContextKeyRead)
-	if readI == nil {
-		return fmt.Errorf("no read context")
-	}
-	//read := readI.(*model.Read)
+		readI := c.Value(model.ContextKeyRead)
+		if readI == nil {
+			return fmt.Errorf("no read context")
+		}
+		//read := readI.(*model.Read)
 
-	log.Println("create is trying to create!!")
-	return fmt.Errorf("not implemented")
+		log.Println("create is trying to create!!")
+		return fmt.Errorf("not implemented")
 
-	//return result.Error
+		//return result.Error
+	*/
 }
 
 // Update sets an existing entry to the database based on the value's
