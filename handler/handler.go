@@ -34,10 +34,10 @@ type Handler struct {
 
 // New creates a new Handler to be used in processing http requests.
 func New(db *gorm.DB, cfg *config.Config) *Handler {
-	ap := activitypub.New(db)
+	ap := activitypub.New(db, cfg)
 	return &Handler{
 		cfg:                  cfg,
-		ap:                   activitypub.New(db),
+		ap:                   activitypub.New(db, cfg),
 		actor:                ap.NewFederatingActor(),
 		streamHandler:        ap.NewStreamsHandler(),
 		bookService:          service.NewBook(db),

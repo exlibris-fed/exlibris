@@ -26,6 +26,7 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(model.Review{})
 	db.AutoMigrate(model.Subject{})
 	db.AutoMigrate(model.User{})
+	db.AutoMigrate(model.Follower{})
 	db.AutoMigrate(model.RegistrationKey{})
 	db.AutoMigrate(model.Cover{})
 

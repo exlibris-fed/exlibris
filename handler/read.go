@@ -25,7 +25,7 @@ func (h *Handler) GetReads(w http.ResponseWriter, r *http.Request) {
 
 	response := []dto.Read{}
 
-	reads, err := h.readsRepo.Get(user)
+	reads, err := h.readsRepo.GetByUser(user)
 
 	if err != nil {
 		// Error searching

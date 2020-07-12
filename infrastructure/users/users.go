@@ -30,7 +30,7 @@ type Repository struct {
 
 func (r *Repository) GetByUsername(name string) (*model.User, error) {
 	var user model.User
-	result := r.db.Where("username = ?", name).
+	result := r.db.Preload("Followers").Where("username = ?", name).
 		First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {

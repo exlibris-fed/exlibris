@@ -42,6 +42,7 @@ type User struct {
 	Password         []byte `json:"-"`
 	PrivateKey       []byte `json:"-"`
 	Summary          string
+	Followers        []Follower        `gorm:"foreignkey:UserID"`
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
 	Local            bool              `json:"-"`
 	Verified         bool              `json:"-"`
@@ -96,7 +97,7 @@ func (u *User) GenerateKeys() error {
 
 // IRI returns a url representing the user's profile
 func (u *User) IRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s", strings.ToLower(u.HumanID)))
+	URL, err := url.Parse(fmt.Sprintf("https://%s", strings.ToLower(u.Username)))
 	if err != nil {
 		log.Printf("error creating IRI for user %s (%s): %s", u.ID, u.Username, err)
 		return nil
@@ -106,7 +107,7 @@ func (u *User) IRI() *url.URL {
 
 // OutboxIRI returns a url representing the user's outbox
 func (u *User) OutboxIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/outbox", strings.ToLower(u.HumanID)))
+	URL, err := url.Parse(fmt.Sprintf(outboxURL, strings.ToLower(u.Username)))
 	if err != nil {
 		log.Printf("error creating outbox IRI for user %s (%s): %s", u.ID, u.Username, err)
 		return nil
@@ -116,9 +117,9 @@ func (u *User) OutboxIRI() *url.URL {
 
 // InboxIRI returns a url representing the user's inbox
 func (u *User) InboxIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/inbox", strings.ToLower(u.HumanID)))
+	URL, err := url.Parse(fmt.Sprintf(inboxURL, strings.ToLower(u.Username)))
 	if err != nil {
-		log.Printf("error creating inbox IRI for user %s (%s): %s", u.HumanID, u.Username, err)
+		log.Printf("error creating inbox IRI for user %s (%s): %s", u.Username, u.Username, err)
 		return nil
 	}
 	return URL
@@ -126,9 +127,9 @@ func (u *User) InboxIRI() *url.URL {
 
 // FollowersIRI returns a url representing the user's followers
 func (u *User) FollowersIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/followers", strings.ToLower(u.HumanID)))
+	URL, err := url.Parse(fmt.Sprintf(followersURL, strings.ToLower(u.Username)))
 	if err != nil {
-		log.Printf("error creating followers IRI for user %s (%s): %s", u.HumanID, u.Username, err)
+		log.Printf("error creating followers IRI for user %s (%s): %s", u.Username, u.Username, err)
 		return nil
 	}
 	return URL
@@ -168,7 +169,7 @@ func (u *User) ToType() vocab.Type {
 
 	URL, err := url.Parse(u.HumanID)
 	if err != nil {
-		log.Printf("error generating user ID for user '%s': %s", u.Username, err.Error)
+		log.Printf("error generating user ID for user '%s': %s", u.Username, err.Error())
 		return nil
 	}
 
@@ -195,4 +196,27 @@ func (u *User) ToType() vocab.Type {
 	// TODO `followers`, `following`, `url` and `summary`
 
 	return user
+}
+
+// FollowersToType renders the users' followers as an OrderedCollection. It is returned as
+// the list in reverse order, so that new entries are first.
+func (u *User) FollowersToType() vocab.Type {
+	followers := streams.NewActivityStreamsOrderedCollection()
+
+	id := streams.NewJSONLDIdProperty()
+	id.SetIRI(u.FollowersIRI())
+
+	items := streams.NewActivityStreamsOrderedItemsProperty()
+	for _, follower := range u.Followers {
+		log.Println(follower.ID)
+		iri, err := url.Parse(follower.ID)
+		if err != nil {
+			log.Println("error parsing url for followers list:", err.Error())
+			continue
+		}
+		items.PrependIRI(iri)
+	}
+	followers.SetActivityStreamsOrderedItems(items)
+
+	return followers
 }

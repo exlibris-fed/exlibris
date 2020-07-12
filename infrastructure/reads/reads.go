@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/exlibris-fed/exlibris/model"
+	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
 
@@ -20,7 +21,7 @@ type Repository struct {
 	db *gorm.DB
 }
 
-func (r *Repository) Get(user *model.User) ([]*model.Read, error) {
+func (r *Repository) GetByUser(user *model.User) ([]*model.Read, error) {
 	reads := []*model.Read{}
 	result := r.db.Preload("Book").
 		Preload("Book.Authors").
@@ -40,4 +41,10 @@ func (r *Repository) Create(read *model.Read) (*model.Read, error) {
 		return nil, ErrNotCreated
 	}
 	return result.Value.(*model.Read), nil
+}
+
+// Get retrieves a read by its id.
+func (r *Repository) Get(id uuid.UUID) (result *model.Read, err error) {
+	err = r.db.Where("id = ?", id).First(result).Error
+	return
 }

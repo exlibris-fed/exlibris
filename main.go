@@ -55,11 +55,7 @@ func main() {
 	ap.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
 	ap.PathPrefix("/").Handler(http.HandlerFunc(h.HandleActivityPubAction))
 
-	// JSON handlers. may not be needed? Hackathon!!
-	jsonRouter := r.Headers("Accept", "application/json").Subrouter()
-	// TODO add withusermodel here?
-	jsonRouter.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
-	jsonRouter.Handle("/@{username}", http.HandlerFunc(h.HandleActivityPubProfile))
+	r.PathPrefix("/user/").Handler(http.HandlerFunc(h.HandleActivityPubAction))
 
 	// App
 	r.HandleFunc("/.well-known/acme-challenge/{id}", h.HandleChallenge)
