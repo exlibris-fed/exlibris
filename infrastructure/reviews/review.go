@@ -35,7 +35,7 @@ func (r *Repository) GetReviews(id string) ([]*model.Review, error) {
 
 func (r *Repository) CreateReview(user *model.User, id string, text string, rating int) (*model.Review, error) {
 	// @TODO: rating
-	book, err := books.New(r.db).GetByID(id)
+	book, err := books.New(r.db).GetByID("/works/" + id)
 	if err != nil {
 		if errors.Is(err, books.ErrNotFound) {
 			return nil, fmt.Errorf("error book does not exist: %w", ErrNotFound)
