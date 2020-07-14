@@ -24,7 +24,7 @@ func (r *Repository) GetByID(id string) (*model.Book, error) {
 	var book model.Book
 	result := r.db.Preload("Covers").
 		Preload("Authors").
-		Where("open_library_id = ?", "/works/"+id).
+		Where("open_library_id = ?", id).
 		First(&book)
 	if result.Error != nil {
 		return nil, ErrNotFound
