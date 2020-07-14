@@ -7,6 +7,7 @@ import (
 
 	"github.com/go-fed/activity/streams"
 	"github.com/go-fed/activity/streams/vocab"
+	"github.com/google/uuid"
 )
 
 const (
@@ -20,7 +21,7 @@ type Read struct {
 	Book   Book `gorm:"foreignkey:OpenLibraryID;association_foreignkey:BookID"`
 	BookID string
 	User   User
-	UserID string
+	UserID uuid.UUID
 }
 
 // ToType returns a representation of a read activity as an ActivityPub object.
