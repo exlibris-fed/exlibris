@@ -12,16 +12,26 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestGetByID(t *testing.T) {
-	conn, mock, _ := sqlmock.New()
+var (
+	authorSourceRows *sqlmock.Rows
+	bookSourceRows   *sqlmock.Rows
+)
+
+func setup() {
 	ts := time.Date(2020, 7, 11, 12, 0, 0, 0, time.UTC)
-	authorSourceRows := sqlmock.NewRows([]string{"created_at", "updated_at", "deleted_at", "open_library_id", "name"}).
+	authorSourceRows = sqlmock.NewRows([]string{"created_at", "updated_at", "deleted_at", "open_library_id", "name"}).
 		AddRow(ts, ts, nil, "OL1234567A", "writer mcwriterface")
+	bookSourceRows = sqlmock.NewRows([]string{"created_at", "updated_at", "deleted_at", "open_library_id", "title", "published", "isbn", "description"}).
+		AddRow(ts, ts, nil, "OL1234567W", "title", 1563408000, 123456789, "description")
+
+}
+
+func TestGetByID(t *testing.T) {
+	setup()
+	conn, mock, _ := sqlmock.New()
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"authors\" WHERE \"authors\".\"deleted_at\" IS NULL AND ((open_library_id = $1)) ORDER BY \"authors\".\"open_library_id\" ASC LIMIT 1")).
 		WithArgs("OL1234567A").
 		WillReturnRows(authorSourceRows)
-	bookSourceRows := sqlmock.NewRows([]string{"created_at", "updated_at", "deleted_at", "open_library_id", "title", "published", "isbn", "description"}).
-		AddRow(ts, ts, nil, "OL1234567W", "title", 1563408000, 123456789, "description")
 	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"books\" INNER JOIN \"book_authors\" ON \"book_authors\".\"book_open_library_id\" = \"books\".\"open_library_id\" WHERE \"books\".\"deleted_at\" IS NULL AND ((\"book_authors\".\"author_open_library_id\" IN ($1)))")).
 		WillReturnRows(bookSourceRows)
 

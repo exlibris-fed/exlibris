@@ -27,7 +27,7 @@ type Book struct {
 func (b *Book) Get(id string) (*model.Book, error) {
 	var book *model.Book
 	var err error
-	if book, err = b.bookRepository.GetByID(id); err != nil {
+	if book, err = b.bookRepository.GetByID("/works/" + id); err != nil {
 		// Error finding book in DB
 		data, err := b.fetch(id)
 		if err != nil {
