@@ -28,7 +28,5 @@ func (h *Handler) HandleInbox(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Println("else...?")
-	// else:
-	//
-	// Handle non-ActivityPub request, such as serving a webpage.
+	w.WriteHeader(http.StatusInternalServerError)
 }

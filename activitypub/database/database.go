@@ -11,6 +11,7 @@ import (
 	"sync"
 
 	"github.com/exlibris-fed/exlibris/config"
+	"github.com/exlibris-fed/exlibris/infrastructure/inbox"
 	"github.com/exlibris-fed/exlibris/infrastructure/outbox"
 	"github.com/exlibris-fed/exlibris/infrastructure/reads"
 	"github.com/exlibris-fed/exlibris/infrastructure/users"
@@ -23,18 +24,28 @@ import (
 )
 
 var (
-	regexpID        = regexp.MustCompile("/user/(.+)$")
-	regexpOutbox    = regexp.MustCompile("/user/(.+)/outbox$")
-	regexpInbox     = regexp.MustCompile("/user/(.+)/inbox$")
-	regexpRead      = regexp.MustCompile("/user/(.+)/read/(.*)")
-	regexpFollowers = regexp.MustCompile("/user/(.+)/followers")
+	regexpID        = regexp.MustCompile("/user/([^\\/]+)$")
+	regexpOutbox    = regexp.MustCompile("/user/([^\\/]+)/outbox$")
+	regexpInbox     = regexp.MustCompile("/user/([^\\/]+)/inbox$")
+	regexpRead      = regexp.MustCompile("/user/([^\\/]+)/read/(.*)")
+	regexpFollowers = regexp.MustCompile("/user/([^\\/]+)/followers")
+)
+
+const (
+	// ResultsPerPage is how many results to return in a response
+	ResultsPerPage = 10
+
+	// StartPage is the number of pages to skip before returning results
+	StartPage = 0
 )
 
 // A Database is a connection to a database. It uses the gorm connection, so that we can still use the models.
 type Database struct {
 	baseURL    string
 	DB         *gorm.DB // TODO needed?
+	cfg        *config.Config
 	outboxRepo *outbox.Repository
+	inboxRepo  *inbox.Repository
 	usersRepo  *users.Repository
 	readsRepo  *reads.Repository
 	locks      map[*url.URL]*sync.Mutex
@@ -49,8 +60,11 @@ func New(db *gorm.DB, cfg *config.Config) *Database {
 	return &Database{
 		baseURL:    uri.String(),
 		DB:         db,
+		cfg:        cfg,
 		outboxRepo: outbox.New(db),
+		inboxRepo:  inbox.New(db),
 		usersRepo:  users.New(db),
+		readsRepo:  reads.New(db),
 		locks:      make(map[*url.URL]*sync.Mutex),
 	}
 }
@@ -72,7 +86,6 @@ func (d *Database) Lock(c context.Context, id *url.URL) error {
 		lock = new(sync.Mutex)
 		d.locks[id] = lock
 	}
-	log.Println("locking")
 	lock.Lock()
 	return nil
 }
@@ -95,18 +108,39 @@ func (d *Database) Unlock(c context.Context, id *url.URL) error {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) InboxContains(c context.Context, inbox, id *url.URL) (contains bool, err error) {
-	// TODO
 	log.Println("inboxcontains")
-	return
+	return d.inboxRepo.Contains(inbox, id)
 }
 
-// GetInbox returns the first ordered collection page of the outbox at
+// GetInbox returns the first ordered collection page of the inbox at
 // the specified IRI, for prepending new items.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) GetInbox(c context.Context, inboxIRI *url.URL) (inbox vocab.ActivityStreamsOrderedCollectionPage, err error) {
-	// TODO
-	log.Println("getinbox")
+	log.Printf("getting inbox: %s", inboxIRI.String())
+
+	inbox = streams.NewActivityStreamsOrderedCollectionPage()
+	id := streams.NewJSONLDIdProperty()
+	id.SetIRI(inboxIRI)
+	inbox.SetJSONLDId(id)
+
+	// TODO pagination
+	entries, err := d.inboxRepo.GetByIRI(inboxIRI)
+	if err != nil {
+		return nil, err
+	}
+
+	orderedItems := streams.NewActivityStreamsOrderedItemsProperty()
+	for _, e := range entries {
+		iri, err := url.Parse(e.URI)
+		if err != nil {
+			log.Printf("error parsing url %s: %s", e.URI, err.Error())
+			continue
+		}
+		orderedItems.AppendIRI(iri)
+	}
+	inbox.SetActivityStreamsOrderedItems(orderedItems)
+
 	return
 }
 
@@ -116,18 +150,53 @@ func (d *Database) GetInbox(c context.Context, inboxIRI *url.URL) (inbox vocab.A
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) SetInbox(c context.Context, inbox vocab.ActivityStreamsOrderedCollectionPage) error {
-	// TODO
-	log.Println("setinbox")
+	log.Println("set inbox in db")
+	items := inbox.GetActivityStreamsOrderedItems()
+
+	inboxIRI := inbox.GetJSONLDId().GetIRI()
+	pieces := regexpInbox.FindStringSubmatch(inboxIRI.String())
+	if len(pieces) != 2 {
+		return fmt.Errorf("invalid url %v", inboxIRI)
+	}
+	user, err := d.usersRepo.GetByUsername(pieces[1])
+	if err != nil {
+		return err
+	}
+
+	existing := make(map[string]bool)
+	existingItems, err := d.inboxRepo.GetByIRI(inboxIRI)
+	if err != nil {
+		return err
+	}
+	for _, item := range existingItems {
+		existing[item.URI] = true
+	}
+	for item := items.Begin(); item != nil; item = item.Next() {
+		iri := item.GetIRI().String()
+		if _, exists := existing[iri]; !exists {
+			if err := d.inboxRepo.Create(&model.InboxEntry{
+				Base: model.Base{
+					ID: uuid.New(),
+				},
+				User:     *user,
+				InboxIRI: inboxIRI.String(),
+				URI:      iri,
+			}); err != nil {
+				return err
+			}
+		}
+	}
+
+	// TODO remove what doesn;t exist (requires setting in get)
 	return nil
 }
 
-// Owns returns true if the database has an entry for the IRI and it
-// exists in the database.
+// Owns determines if the ActivityPub id is owned by this server.
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Owns(c context.Context, id *url.URL) (owns bool, err error) {
-	// TODO
-	log.Println("owns")
+	// TODO more robust than this
+	owns = id.Scheme == d.cfg.Scheme && id.Host == d.cfg.Domain
 	return
 }
 
@@ -135,9 +204,6 @@ func (d *Database) Owns(c context.Context, id *url.URL) (owns bool, err error) {
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) ActorForOutbox(c context.Context, outboxIRI *url.URL) (actorIRI *url.URL, err error) {
-	// TODO
-	//pieces := regexpID.FindStringSubmatch(outboxIRI.String())
-	//actorIRI, err = url.Parse(fmt.Sprintf("https://%s", pieces[1]))
 	log.Println("actorforoutbox")
 	actorIRI, err = url.Parse(strings.Replace(outboxIRI.String(), "/outbox", "", 1))
 	return
@@ -167,8 +233,14 @@ func (d *Database) OutboxForInbox(c context.Context, inboxIRI *url.URL) (outboxI
 //
 // The library makes this call only after acquiring a lock first.
 func (d *Database) Exists(c context.Context, id *url.URL) (exists bool, err error) {
-	// TODO
-	log.Println("exists")
+	log.Println("in exists, looking at", id.String())
+	// TODO things other than reads
+	read, getErr := d.readsRepo.Get(id.String())
+	if getErr == nil && read.ID == id.String() {
+		log.Println("they do exist")
+		exists = true
+	}
+	log.Println("doesnt exist")
 	return
 }
 
@@ -178,7 +250,7 @@ func (d *Database) Exists(c context.Context, id *url.URL) (exists bool, err erro
 func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err error) {
 	pieces := regexpRead.FindStringSubmatch(id.String())
 	if len(pieces) == 3 {
-		return d.getRead(pieces[2])
+		return d.getRead(id.String())
 	}
 
 	pieces = regexpFollowers.FindStringSubmatch(id.String())
@@ -196,11 +268,7 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 }
 
 func (d *Database) getRead(strID string) (value vocab.Type, err error) {
-	id, err := uuid.Parse(strID)
-	if err != nil {
-		return
-	}
-	r, err := d.readsRepo.Get(id)
+	r, err := d.readsRepo.Get(strID)
 	if err != nil {
 		return
 	}
@@ -239,47 +307,32 @@ func (d *Database) getProfile(strID string) (value vocab.Type, err error) {
 // Under certain conditions and network activities, Create may be called
 // multiple times for the same ActivityStreams object.
 func (d *Database) Create(c context.Context, asType vocab.Type) error {
-	//log.Printf("type name: %+v", asType.TypeName())
-	log.Printf("context: %+v", asType.JSONLDContext())
-	//log.Printf("vocab iri: %+v", asType.VocabularyIRI())
-	return nil
-	/*
-		// TODO what if this isnt a read?
-		jid := asType.GetJSONLDId()
-		id, err := jid.Serialize()
-		if err != nil {
-			return err
-		}
-		pieces := regexpID.FindStringSubmatch(id.(string))
+	log.Println("creating!")
 
-		u, err := uuid.Parse(pieces[2])
-		if err != nil {
-			return err
-		}
-		bytes, err := u.MarshalBinary()
-		if err != nil {
-			return err
-		}
+	id := asType.GetJSONLDId().GetIRI()
 
-		var i int
-		d.DB.Model(model.Read{}).Where("id = ?", bytes).Count(&i)
+	exists, err := d.Exists(c, id)
+	if err != nil {
+		return err
+	}
+	if exists {
+		log.Println("exists, not creating")
+		return nil
+	}
 
-		// we already have this in the database, don't create it again
-		if i == 1 {
-			return nil
-		}
+	if asRead, ok := asType.(vocab.ActivityStreamsRead); ok {
+		log.Println(asRead)
+		//r := new(model.Read)
+		// TODO
+		// map[@context:https://www.w3.org/ns/activitystreams actor:map[id:localhost:8080/@dconley inbox:http://localhost:8080/user/dconley/inbox name:dconley outbox:http://localhost:8080/user/dconley/outbox preferredUsername:dconley type:Person] id:http://localhost:8080/@dconley/read/75fa9f8e-35a4-4cce-a56f-6b631857a425 object:map[attributedTo:map[id:https://openlibrary.org/authors//authors/OL19430A/ name:Neal Stephenson type:Person] id:https://openlibrary.org/works//works/OL14911626W/ name:Anathem type:Document] to:[http://localhost:8080/user/dconley/followers https://www.w3.org/ns/activitystreams#Public] type:Read]
 
-		readI := c.Value(model.ContextKeyRead)
-		if readI == nil {
-			return fmt.Errorf("no read context")
-		}
-		//read := readI.(*model.Read)
+		return fmt.Errorf("whoops not yet")
+		//return d.readsRepo.Create(r)
+	}
 
-		log.Println("create is trying to create!!")
-		return fmt.Errorf("not implemented")
+	// TODO other types
 
-		//return result.Error
-	*/
+	return fmt.Errorf("dont know how to handle")
 }
 
 // Update sets an existing entry to the database based on the value's
@@ -321,14 +374,22 @@ func (d *Database) GetOutbox(c context.Context, outboxIRI *url.URL) (outbox voca
 	id.SetIRI(outboxIRI)
 	outbox.SetJSONLDId(id)
 
+	// TODO pagination
 	entries, err := d.outboxRepo.GetByIRI(outboxIRI)
 	if err != nil {
 		return nil, err
 	}
 
-	for e := range entries {
-		log.Printf("found serialized %+v\n", e)
+	orderedItems := streams.NewActivityStreamsOrderedItemsProperty()
+	for _, e := range entries {
+		iri, err := url.Parse(e.URI)
+		if err != nil {
+			log.Printf("error parsing url %s: %s", e.URI, err.Error())
+			continue
+		}
+		orderedItems.AppendIRI(iri)
 	}
+	outbox.SetActivityStreamsOrderedItems(orderedItems)
 
 	return
 }
@@ -352,8 +413,6 @@ func (d *Database) SetOutbox(c context.Context, outbox vocab.ActivityStreamsOrde
 		return err
 	}
 
-	log.Printf("doin it for user %s (%v)", user.Username, user.ID)
-
 	existing := make(map[string]bool)
 	existingItems, err := d.outboxRepo.GetByIRI(outboxIRI)
 	if err != nil {
@@ -362,7 +421,6 @@ func (d *Database) SetOutbox(c context.Context, outbox vocab.ActivityStreamsOrde
 	for _, item := range existingItems {
 		existing[item.URI] = true
 	}
-	log.Printf("%+v", user)
 	for item := items.Begin(); item != nil; item = item.Next() {
 		iri := item.GetIRI().String()
 		if _, exists := existing[iri]; !exists {
@@ -379,7 +437,7 @@ func (d *Database) SetOutbox(c context.Context, outbox vocab.ActivityStreamsOrde
 		}
 	}
 
-	// TODO remove
+	// TODO remove what doesn;t exist (requires setting in get)
 	return nil
 }
 

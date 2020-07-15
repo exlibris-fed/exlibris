@@ -48,13 +48,9 @@ func main() {
 	books.HandleFunc("/{book}/review", h.Review).Methods(http.MethodPost, http.MethodOptions, http.MethodGet)
 
 	// inbox/outbox handle authentication as part of the go-fed flow. ExtractUsername will populate it if present.
-	ap := r.Headers("Accept", "application/activity+json").Subrouter()
-	// TODO add withusermodel here?
-	ap.Handle("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
-	ap.Handle("/user/{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
-	ap.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
-	ap.PathPrefix("/").Handler(http.HandlerFunc(h.HandleActivityPubAction))
-
+	r.HandleFunc("/user/{username}", http.HandlerFunc(h.HandleActivityPubProfile))
+	r.Handle("/user/{username}/inbox", m.WithUserModel(http.HandlerFunc(h.HandleInbox)))
+	r.Handle("/user/{username}/outbox", m.WithUserModel(http.HandlerFunc(h.HandleOutbox)))
 	r.PathPrefix("/user/").Handler(http.HandlerFunc(h.HandleActivityPubAction))
 
 	// App

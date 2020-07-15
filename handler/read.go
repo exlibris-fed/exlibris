@@ -2,8 +2,10 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/exlibris-fed/exlibris/dto"
@@ -87,19 +89,22 @@ func (h *Handler) Read(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	bookID := fmt.Sprintf("%s://%s/user/%s/%s", h.cfg.Scheme, h.cfg.Domain, strings.ToLower(user.Username), uuid.New())
 	read := model.Read{
-		Base: model.Base{
-			ID: uuid.New(),
-		},
+		ID:     bookID,
 		User:   *user,
 		Book:   *book,
 		BookID: book.OpenLibraryID,
 	}
+
+	// TODO: we're going to want to actually create as part of the AP flow. That's nearly ready but I'd like to discuss how much to grab here vs there (I think either is fine, because we can populate the data here and when it checks if we have the book/author/subjects/etc in activitypub/database's Create we don't fetch them)
 	h.readsRepo.Create(&read)
 
-	if _, err := h.actor.Send(c, user.OutboxIRI(), read.ToType()); err != nil {
-		log.Printf("error sending to outbox for read %s: %s", read.ID, err.Error())
-	}
+	/*
+		if _, err := h.actor.Send(c, user.OutboxIRI(), read.ToType()); err != nil {
+			log.Printf("error sending to outbox for read %s: %s", read.ID, err.Error())
+		}
+	*/
 
 	w.Header().Add("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)

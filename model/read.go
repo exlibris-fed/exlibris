@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"log"
 	"net/url"
 
@@ -17,7 +16,8 @@ const (
 
 // Read is a many to many model describing a user who read a book. Because GORM does weird things with foreign keys we need to do it manually, unfortunately.
 type Read struct {
-	Base
+	ID string `gorm:"primary_key"`
+	BaseEvents
 	Book   Book `gorm:"foreignkey:OpenLibraryID;association_foreignkey:BookID"`
 	BookID string
 	User   User
@@ -28,9 +28,9 @@ type Read struct {
 func (r *Read) ToType() vocab.Type {
 	read := streams.NewActivityStreamsRead()
 
-	u, err := url.Parse(fmt.Sprintf("https://%s/%s", r.User.ID, r.ID))
+	u, err := url.Parse(r.ID)
 	if err != nil {
-		log.Printf("error generating user ID for read '%s': %s", r.ID, err.Error())
+		log.Printf("error generating url ID for read '%s': %s", r.ID, err.Error())
 		return nil
 	}
 	id := streams.NewJSONLDIdProperty()

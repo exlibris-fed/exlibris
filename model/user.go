@@ -208,12 +208,13 @@ func (u *User) FollowersToType() vocab.Type {
 
 	items := streams.NewActivityStreamsOrderedItemsProperty()
 	for _, follower := range u.Followers {
-		log.Println(follower.ID)
+		log.Println("appending follower", follower.ID)
 		iri, err := url.Parse(follower.ID)
 		if err != nil {
 			log.Println("error parsing url for followers list:", err.Error())
 			continue
 		}
+		//items.PrependIRI(iri)
 		items.PrependIRI(iri)
 	}
 	followers.SetActivityStreamsOrderedItems(items)

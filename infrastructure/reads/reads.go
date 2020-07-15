@@ -4,7 +4,6 @@ import (
 	"errors"
 
 	"github.com/exlibris-fed/exlibris/model"
-	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
 
@@ -43,8 +42,11 @@ func (r *Repository) Create(read *model.Read) (*model.Read, error) {
 	return result.Value.(*model.Read), nil
 }
 
-// Get retrieves a read by its id.
-func (r *Repository) Get(id uuid.UUID) (result *model.Read, err error) {
-	err = r.db.Where("id = ?", id).First(result).Error
+// Get retrieves a read by its id (which is a uri to the activity).
+func (r *Repository) Get(id string) (result *model.Read, err error) {
+	result = new(model.Read)
+	err = r.db.Where("id = ?", id).
+		First(result).
+		Error
 	return
 }

@@ -60,6 +60,7 @@ func (ap *ActivityPub) NewStreamsHandler() pub.HandlerFunc {
 // TODO should it return an error instead of just not authenticated?
 func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	log.Println("auth get inbox")
+	// TODO http signatures
 	vars := mux.Vars(r)
 	username, ok := vars["username"]
 	if !ok {
@@ -84,7 +85,8 @@ func (ap *ActivityPub) AuthenticateGetInbox(c context.Context, w http.ResponseWr
 
 func (ap *ActivityPub) AuthenticateGetOutbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	// TODO
-	log.Println("auth get outbox")
+	log.Println("auth get outbox, DEFAULTING TO TRUE")
+	authenticated = true
 	return
 }
 
@@ -139,24 +141,30 @@ func (ap *ActivityPub) signer(headers []string) httpsig.Signer {
 func (ap *ActivityPub) PostInboxRequestBodyHook(c context.Context, r *http.Request, activity pub.Activity) (context.Context, error) {
 	// TODO
 	log.Println("post inbox req body hook")
-	return nil, nil
+	// This is to make your life easier in the HTTP request-handling cycle. This is a hook for you in case you need to set up context.Context based on the http.Request after the body has been read and interpreted, but before it has been checked for authorization, blocks, etc.
+	return c, nil
 }
 
 func (ap *ActivityPub) AuthenticatePostInbox(c context.Context, w http.ResponseWriter, r *http.Request) (out context.Context, authenticated bool, err error) {
 	// TODO
-	log.Println("ath post inbox")
+	log.Println("auth post inbox, DEFAULTING TO TRUE")
+	authenticated = true
 	return
 }
 
 func (ap *ActivityPub) Blocked(c context.Context, actorIRIs []*url.URL) (blocked bool, err error) {
 	// TODO
-	log.Println("blocked")
+	log.Println("blocked, DEFAULTING TO FALSE")
 	return
 }
 
 func (ap *ActivityPub) FederatingCallbacks(c context.Context) (wrapped pub.FederatingWrappedCallbacks, other []interface{}, err error) {
-	// TODO
-	log.Println("fed callbacks")
+	other = []interface{}{
+		func(c context.Context, flag vocab.ActivityStreamsRead) error {
+			log.Println("its happening!!!!")
+			return nil
+		},
+	}
 	return
 }
 
@@ -181,6 +189,7 @@ func (ap *ActivityPub) MaxDeliveryRecursionDepth(c context.Context) int {
 
 func (ap *ActivityPub) FilterForwarding(c context.Context, potentialRecipients []*url.URL, a pub.Activity) (filteredRecipients []*url.URL, err error) {
 	// TODO
+	// see https://www.w3.org/TR/activitypub/#inbox-forwarding
 	log.Println("filter forwarding")
 	return
 }
