@@ -1,6 +1,7 @@
 package authors
 
 import (
+	"errors"
 	"fmt"
 	"regexp"
 	"testing"
@@ -26,13 +27,19 @@ func setup() {
 
 }
 
+func teardown() {
+	authorSourceRows = nil
+	bookSourceRows = nil
+}
+
 func TestGetByID(t *testing.T) {
 	setup()
+	defer teardown()
 	conn, mock, _ := sqlmock.New()
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"authors\" WHERE \"authors\".\"deleted_at\" IS NULL AND ((open_library_id = $1)) ORDER BY \"authors\".\"open_library_id\" ASC LIMIT 1")).
+	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"authors\" WHERE \"authors\".\"deleted_at\" IS NULL AND ((open_library_id = $1)) ORDER BY \"authors\".\"open_library_id\" ASC LIMIT 1") + "$").
 		WithArgs("OL1234567A").
 		WillReturnRows(authorSourceRows)
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"books\" INNER JOIN \"book_authors\" ON \"book_authors\".\"book_open_library_id\" = \"books\".\"open_library_id\" WHERE \"books\".\"deleted_at\" IS NULL AND ((\"book_authors\".\"author_open_library_id\" IN ($1)))")).
+	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"books\" INNER JOIN \"book_authors\" ON \"book_authors\".\"book_open_library_id\" = \"books\".\"open_library_id\" WHERE \"books\".\"deleted_at\" IS NULL AND ((\"book_authors\".\"author_open_library_id\" IN ($1)))") + "$").
 		WillReturnRows(bookSourceRows)
 
 	db, _ := gorm.Open("postgres", conn)
@@ -48,7 +55,7 @@ func TestGetByID(t *testing.T) {
 
 func TestGetByID_NotFound(t *testing.T) {
 	conn, mock, _ := sqlmock.New()
-	mock.ExpectQuery(regexp.QuoteMeta("SELECT * FROM \"authors\" WHERE \"authors\".\"deleted_at\" IS NULL AND ((open_library_id = $1)) ORDER BY \"authors\".\"open_library_id\" ASC LIMIT 1")).
+	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"authors\" WHERE \"authors\".\"deleted_at\" IS NULL AND ((open_library_id = $1)) ORDER BY \"authors\".\"open_library_id\" ASC LIMIT 1") + "$").
 		WithArgs("OL2345678A").
 		WillReturnError(fmt.Errorf("record not found"))
 
@@ -59,6 +66,7 @@ func TestGetByID_NotFound(t *testing.T) {
 	author, err := repo.GetByID("OL2345678A")
 	assert.Error(t, err)
 	assert.Nil(t, author)
+	assert.True(t, errors.Is(err, ErrNotFound))
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
@@ -69,7 +77,7 @@ func TestCreate(t *testing.T) {
 		AddRow("OL1234567A")
 
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta("INSERT INTO \"authors\" (\"created_at\",\"updated_at\",\"deleted_at\",\"open_library_id\",\"name\") VALUES ($1,$2,$3,$4,$5) RETURNING \"authors\".\"open_library_id\"")).
+	mock.ExpectQuery("^"+regexp.QuoteMeta("INSERT INTO \"authors\" (\"created_at\",\"updated_at\",\"deleted_at\",\"open_library_id\",\"name\") VALUES ($1,$2,$3,$4,$5) RETURNING \"authors\".\"open_library_id\"")+"$").
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, "OL1234567A", "writer mcwriterface").
 		WillReturnRows(authorSourceRows)
 	mock.ExpectCommit()
@@ -92,7 +100,7 @@ func TestCreate_Error(t *testing.T) {
 	conn, mock, _ := sqlmock.New()
 
 	mock.ExpectBegin()
-	mock.ExpectQuery(regexp.QuoteMeta("INSERT INTO \"authors\" (\"created_at\",\"updated_at\",\"deleted_at\",\"open_library_id\",\"name\") VALUES ($1,$2,$3,$4,$5) RETURNING \"authors\".\"open_library_id\"")).
+	mock.ExpectQuery("^"+regexp.QuoteMeta("INSERT INTO \"authors\" (\"created_at\",\"updated_at\",\"deleted_at\",\"open_library_id\",\"name\") VALUES ($1,$2,$3,$4,$5) RETURNING \"authors\".\"open_library_id\"")+"$").
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, "OL1234567A", "writer mcwriterface").
 		WillReturnError(fmt.Errorf("could not update"))
 	mock.ExpectRollback()
@@ -107,6 +115,7 @@ func TestCreate_Error(t *testing.T) {
 	})
 	assert.Error(t, err)
 	assert.Nil(t, author)
+	assert.True(t, errors.Is(err, ErrNotCreated))
 	assert.NoError(t, mock.ExpectationsWereMet())
 
 }

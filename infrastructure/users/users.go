@@ -11,11 +11,17 @@ import (
 )
 
 var (
-	ErrNotFound  = errors.New("user could not be found")
-	ErrStorage   = errors.New("error with storage")
+	// ErrNotFound is returned when a record cannot be found
+	ErrNotFound = errors.New("user could not be found")
+	// ErrNotCreated is returned when a record cannot be created
+	ErrNotCreated = errors.New("review for book could not be created")
+	// ErrStorage is returned when an unknown storage issue occurs
+	ErrStorage = errors.New("error with storage")
+	// ErrDuplicate occurs when the user already exists
 	ErrDuplicate = errors.New("user already exists")
 )
 
+// New creates a new Repository instance for users
 func New(db *gorm.DB) *Repository {
 	return &Repository{
 		db:      db,
@@ -23,11 +29,13 @@ func New(db *gorm.DB) *Repository {
 	}
 }
 
+// Repository is used for querying and creating users
 type Repository struct {
 	db      *gorm.DB
 	keyRepo *registrationkeys.Repository
 }
 
+// GetByUsername returns a user by user name
 func (r *Repository) GetByUsername(name string) (*model.User, error) {
 	var user model.User
 	result := r.db.Where("username = ?", name).
@@ -41,12 +49,14 @@ func (r *Repository) GetByUsername(name string) (*model.User, error) {
 	return &user, nil
 }
 
+// Create creates the given user with a registration key
 func (r *Repository) Create(user *model.User, key *model.RegistrationKey) (*model.User, error) {
+	// @TODO: this is an awkward function
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		if err := tx.Create(user).Error; err != nil {
 			return err
 		}
-		if err := tx.Create(key).Error; err != nil {
+		if _, err := r.keyRepo.Create(key); err != nil {
 			return err
 		}
 		return nil
@@ -56,28 +66,29 @@ func (r *Repository) Create(user *model.User, key *model.RegistrationKey) (*mode
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return nil, ErrDuplicate
 		}
-	}
-	return user, err
-}
-
-func (r *Repository) Save(user *model.User) (*model.User, error) {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		result := r.db.Save(user)
-		if result.Error != nil {
-			return ErrStorage
-		}
-		user = result.Value.(*model.User)
-		return nil
-	})
-	if err != nil {
-		return nil, err
+		return nil, ErrNotCreated
 	}
 	return user, nil
 }
 
-func (r *Repository) Activate(id uuid.UUID) error {
+// Save a given user to the database
+func (r *Repository) Save(user *model.User) (*model.User, error) {
+	result := r.db.Save(user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, ErrStorage
+	}
+	user = result.Value.(*model.User)
+	return user, nil
+}
 
-	return r.db.Transaction(func(tx *gorm.DB) error {
+// Activate a user given a key's ID
+func (r *Repository) Activate(id uuid.UUID) error {
+	// @TODO: This is also highly awkward
+
+	err := r.db.Transaction(func(tx *gorm.DB) error {
 		key, err := r.keyRepo.Get(id)
 		if err != nil {
 			return err
@@ -91,4 +102,11 @@ func (r *Repository) Activate(id uuid.UUID) error {
 		}
 		return nil
 	})
+	if err != nil {
+		if errors.Is(err, registrationkeys.ErrNotFound) {
+			return ErrNotFound
+		}
+		return ErrStorage
+	}
+	return nil
 }

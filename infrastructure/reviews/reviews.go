@@ -12,30 +12,40 @@ import (
 )
 
 var (
-	ErrNotFound   = errors.New("reviews could not be found for book")
+	// ErrNotFound is returned when a record cannot be found
+	ErrNotFound = errors.New("reviews could not be found for book")
+	// ErrNotCreated is returned when a record cannot be created
 	ErrNotCreated = errors.New("review for book could not be created")
-	ErrStorage    = errors.New("could not retrieve data")
+	// ErrStorage is returned when an unknown storage issue occurs
+	ErrStorage = errors.New("could not retrieve data")
 )
 
+// New creates a new Repository instance for reviews
 func New(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
+// Repository is used for querying and creating reviews
 type Repository struct {
 	db *gorm.DB
 }
 
-func (r *Repository) GetReviews(id string) ([]*model.Review, error) {
-	var reviews []*model.Review
-	if err := r.db.Preload("User").Where(&reviews, "book_id = ?", id).Find(&reviews).Error; err != nil {
+// GetReviews returns the reviews for a given book
+// Preloads the User object
+func (r *Repository) GetReviews(book *model.Book) ([]model.Review, error) {
+	var reviews []model.Review
+	if err := r.db.Preload("User").
+		Where("book_id = ?", book.OpenLibraryID).
+		Find(&reviews).Error; err != nil {
 		return nil, ErrNotFound
 	}
 	return reviews, nil
 }
 
-func (r *Repository) CreateReview(user *model.User, id string, text string, rating int) (*model.Review, error) {
+// CreateReview will create a new review for a given book
+func (r *Repository) CreateReview(user *model.User, book *model.Book, text string, rating int) (*model.Review, error) {
 	// @TODO: rating
-	book, err := books.New(r.db).GetByID("/works/" + id)
+	book, err := books.New(r.db).GetByID(book.OpenLibraryID)
 	if err != nil {
 		if errors.Is(err, books.ErrNotFound) {
 			return nil, fmt.Errorf("error book does not exist: %w", ErrNotFound)

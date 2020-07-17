@@ -24,7 +24,6 @@ func Migrate(db *gorm.DB) {
 	db.AutoMigrate(model.OutboxEntry{})
 	db.AutoMigrate(model.Read{})
 	db.AutoMigrate(model.Review{})
-	db.AutoMigrate(model.Subject{})
 	db.AutoMigrate(model.User{})
 	db.AutoMigrate(model.RegistrationKey{})
 	db.AutoMigrate(model.Cover{})
@@ -34,9 +33,6 @@ func Migrate(db *gorm.DB) {
 
 	db.Table("book_authors").AddForeignKey("author_open_library_id", "authors(open_library_id)", "CASCADE", "CASCADE")
 	db.Table("book_authors").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
-
-	db.Table("book_subjects").AddForeignKey("subject_id", "subjects(id)", "CASCADE", "CASCADE")
-	db.Table("book_subjects").AddForeignKey("book_open_library_id", "books(open_library_id)", "CASCADE", "CASCADE")
 
 	db.Model(&model.OutboxEntry{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
 

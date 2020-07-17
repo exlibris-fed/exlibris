@@ -5,8 +5,8 @@ import (
 )
 
 type RegistrationKey struct {
-	Key    uuid.UUID
-	User   User
+	Key    uuid.UUID `gorm:"primary_key"`
+	User   User      `gorm:"association_autoupdate:false"`
 	UserID uuid.UUID
 }
 
