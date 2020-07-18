@@ -277,7 +277,7 @@ func (d *Database) getRead(strID string) (value vocab.Type, err error) {
 }
 
 func (d *Database) getFollowers(strID string) (value vocab.Type, err error) {
-	u, err := d.usersRepo.GetByUsername(strID)
+	u, err := d.usersRepo.GetByUsernameWithFollowers(strID)
 	if err != nil {
 		return
 	}

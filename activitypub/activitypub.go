@@ -33,7 +33,7 @@ type ActivityPub struct {
 	clock *clock.Clock
 }
 
-// New returns a new ActiityPub object.
+// New returns a new ActivityPub object.
 func New(db *gorm.DB, cfg *config.Config) *ActivityPub {
 	return &ActivityPub{
 		db:    database.New(db, cfg),
@@ -41,6 +41,7 @@ func New(db *gorm.DB, cfg *config.Config) *ActivityPub {
 	}
 }
 
+// NewFederatingActor creates a federating actor that can be reused by a http handler to create and send ActivityPub objects.
 func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 	return pub.NewFederatingActor(
 		ap,       // common
@@ -50,6 +51,7 @@ func (ap *ActivityPub) NewFederatingActor() pub.FederatingActor {
 	)
 }
 
+// NewStreamsHandler creates a handler that can parse and handle ActivityPub requests.
 func (ap *ActivityPub) NewStreamsHandler() pub.HandlerFunc {
 	return pub.NewActivityStreamsHandler(ap.db, ap.clock)
 }

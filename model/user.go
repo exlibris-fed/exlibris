@@ -214,7 +214,6 @@ func (u *User) FollowersToType() vocab.Type {
 			log.Println("error parsing url for followers list:", err.Error())
 			continue
 		}
-		//items.PrependIRI(iri)
 		items.PrependIRI(iri)
 	}
 	followers.SetActivityStreamsOrderedItems(items)

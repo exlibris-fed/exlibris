@@ -18,9 +18,9 @@ const (
 type Read struct {
 	ID string `gorm:"primary_key"`
 	BaseEvents
-	Book   Book `gorm:"foreignkey:OpenLibraryID;association_foreignkey:BookID"`
+	Book   Book `gorm:"foreignkey:OpenLibraryID;association_foreignkey:BookID;association_autoupdate:false"`
 	BookID string
-	User   User
+	User   User `gorm:"association_autoupdate:false"`
 	UserID uuid.UUID
 }
 
