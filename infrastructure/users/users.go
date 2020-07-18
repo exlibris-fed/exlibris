@@ -49,8 +49,8 @@ func (r *Repository) GetByUsername(name string) (*model.User, error) {
 	return &user, nil
 }
 
-// GetByUsernameWithFollower returns a User object given a username. It includes their list of followers.
-func (r *Repository) GetByUsernameWithFollower(name string) (*model.User, error) {
+// GetByUsernameWithFollowers returns a User object given a username. It includes their list of followers.
+func (r *Repository) GetByUsernameWithFollowers(name string) (*model.User, error) {
 	var user model.User
 	result := r.db.Preload("Followers").Where("username = ?", name).First(&user)
 	if result.Error != nil {
