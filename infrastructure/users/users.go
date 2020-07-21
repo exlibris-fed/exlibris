@@ -52,7 +52,6 @@ func (r *Repository) GetByUsername(name string) (*model.User, error) {
 // Create the given user with a registration key.
 func (r *Repository) Create(user *model.User, key *model.RegistrationKey) (*model.User, error) {
 
-	// @FIXME: this is an awkward function
 	if err := r.db.Create(user).Error; err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return nil, ErrDuplicate
