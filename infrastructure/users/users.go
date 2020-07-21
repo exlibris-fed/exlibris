@@ -84,7 +84,11 @@ func (r *Repository) Save(user *model.User) (*model.User, error) {
 
 // Activate a user given a key's ID.
 func (r *Repository) Activate(id uuid.UUID) error {
-	// @FIXME: This is also highly awkward
+	// @FIXME: Activating a user happens by passing in the registration key uuid
+	// so the user object has to essentially have the registration object in hand
+	// but the user object doesn't have a reference to the registration object, the
+	// relationship is that a registration key belongs to a user. It seems
+	// it would make more sense to have a registration key activate the user.
 
 	err := r.db.Transaction(func(tx *gorm.DB) error {
 		key, err := r.keyRepo.Get(id)
