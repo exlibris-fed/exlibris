@@ -93,10 +93,10 @@ func TestCreate(t *testing.T) {
 	mock.ExpectQuery("^"+regexp.QuoteMeta("INSERT INTO \"users\" (\"created_at\",\"updated_at\",\"deleted_at\",\"id\",\"human_id\",\"username\",\"display_name\",\"email\",\"password\",\"private_key\",\"summary\",\"local\",\"verified\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING \"users\".\"id\"")+"$").
 		WithArgs(sqlmock.AnyArg(), sqlmock.AnyArg(), nil, "b3032140-e824-4b39-9be2-47e99f383f2b", "bob@mainframe", "bob", "guardianBob", "bob@mainframe.local", sqlmock.AnyArg(), sqlmock.AnyArg(), "summary", true, true).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("b3032140-e824-4b39-9be2-47e99f383f2b"))
+	mock.ExpectCommit()
 	mock.ExpectBegin()
 	mock.ExpectQuery("^" + regexp.QuoteMeta("INSERT INTO \"registration_key")).
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("33fd50f8-f74e-495f-8c1c-1b791b184c3a"))
-	mock.ExpectCommit()
 	mock.ExpectCommit()
 	db, _ := gorm.Open("postgres", conn)
 
@@ -191,10 +191,10 @@ func TestCreate_ErrNotCreated_Key(t *testing.T) {
 	mock.ExpectBegin()
 	mock.ExpectQuery("^" + regexp.QuoteMeta("INSERT INTO \"users\" (\"created_at\",\"updated_at\",\"deleted_at\",\"id\",\"human_id\",\"username\",\"display_name\",\"email\",\"password\",\"private_key\",\"summary\",\"local\",\"verified\") VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) RETURNING \"users\".\"id\"") + "$").
 		WillReturnRows(sqlmock.NewRows([]string{"id"}).AddRow("b3032140-e824-4b39-9be2-47e99f383f2b"))
+	mock.ExpectCommit()
 	mock.ExpectBegin()
 	mock.ExpectQuery("^" + regexp.QuoteMeta("INSERT INTO \"registration_key")).
 		WillReturnError(fmt.Errorf("oops"))
-	mock.ExpectRollback()
 	mock.ExpectRollback()
 	db, _ := gorm.Open("postgres", conn)
 

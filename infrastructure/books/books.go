@@ -8,26 +8,26 @@ import (
 )
 
 var (
-	// ErrNotFound is returned when a record cannot be found
+	// ErrNotFound is returned when a record cannot be found.
 	ErrNotFound = errors.New("book could not be found")
-	// ErrNotCreated is returned when a record cannot be created
+	// ErrNotCreated is returned when a record cannot be created.
 	ErrNotCreated = errors.New("book could not be created")
-	// ErrStorage is returned when an unknown storage issue occurs
+	// ErrStorage is returned when an unknown storage issue occurs.
 	ErrStorage = errors.New("error with storage")
 )
 
-// New creates a new Repository instance for books
+// New creates a new Repository instance for books.
 func New(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-// Repository is used for querying and creating books
+// Repository is used for querying and creating books.
 type Repository struct {
 	db *gorm.DB
 }
 
-// GetByID returns a book from the database given an ID
-// Will also return its authors and covers
+// GetByID returns a book from the database given an ID.
+// Will also return its authors and covers.
 func (r *Repository) GetByID(id string) (*model.Book, error) {
 	var book model.Book
 	result := r.db.Preload("Covers").
@@ -44,6 +44,7 @@ func (r *Repository) GetByID(id string) (*model.Book, error) {
 	return &book, nil
 }
 
+// Create will persist the book in the database.
 func (r *Repository) Create(book *model.Book) (*model.Book, error) {
 	result := r.db.Create(book)
 	if result.Error != nil {

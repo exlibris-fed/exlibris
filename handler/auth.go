@@ -85,8 +85,14 @@ func (h *Handler) ResendVerificationKey(w http.ResponseWriter, r *http.Request) 
 		w.WriteHeader(http.StatusNotFound)
 		return
 	}
+	user, err := h.usersRepo.GetByUsername(username)
+	if err != nil {
+		log.Printf("error getting user: %s %s", username, err.Error())
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
 
-	key, err := h.registrationKeysRepo.GetByUsername(username)
+	key, err := h.registrationKeysRepo.GetByUser(user)
 
 	if err != nil {
 		if errors.Is(err, registrationkeys.ErrNotFound) {

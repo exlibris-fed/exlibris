@@ -35,36 +35,44 @@ func TestGetByUsername(t *testing.T) {
 	defer teardown()
 	conn, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT \"registration_keys\".* FROM \"registration_keys\" inner join users on registration_keys.user_id = users.id WHERE (username = $1) ORDER BY \"registration_keys\".\"key\" ASC LIMIT 1") + "$").
-		WithArgs("bob").
-		WillReturnRows(registrationKeysRows)
-
-	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"users\"  WHERE \"users\".\"deleted_at\" IS NULL AND ((\"id\" IN ($1))) ORDER BY \"users\".\"id\" ASC") + "$").
+	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"registration_keys\" WHERE (\"user_id\" = $1)") + "$").
 		WithArgs("b3032140-e824-4b39-9be2-47e99f383f2b").
-		WillReturnRows(usersRows)
+		WillReturnRows(registrationKeysRows)
 
 	db, _ := gorm.Open("postgres", conn)
 	repo := New(db)
 
-	user, err := repo.GetByUsername("bob")
+	user := &model.User{
+		Base: model.Base{
+			ID: uuid.MustParse("b3032140-e824-4b39-9be2-47e99f383f2b"),
+		},
+	}
+
+	key, err := repo.GetByUser(user)
 	assert.NoError(t, err)
-	assert.NotNil(t, user)
+	assert.NotNil(t, key)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
 
 func TestGetByUsername_ErrNotFound(t *testing.T) {
 	conn, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT \"registration_keys\".* FROM \"registration_keys\" inner join users on registration_keys.user_id = users.id WHERE (username = $1) ORDER BY \"registration_keys\".\"key\" ASC LIMIT 1") + "$").
-		WithArgs("bob").
+	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"registration_keys\" WHERE (\"user_id\" = $1)") + "$").
+		WithArgs("b3032140-e824-4b39-9be2-47e99f383f2b").
 		WillReturnError(gorm.ErrRecordNotFound)
 
 	db, _ := gorm.Open("postgres", conn)
 	repo := New(db)
 
-	user, err := repo.GetByUsername("bob")
+	user := &model.User{
+		Base: model.Base{
+			ID: uuid.MustParse("b3032140-e824-4b39-9be2-47e99f383f2b"),
+		},
+	}
+
+	key, err := repo.GetByUser(user)
 	assert.Error(t, err)
-	assert.Nil(t, user)
+	assert.Nil(t, key)
 	assert.Equal(t, ErrNotFound, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }
@@ -72,16 +80,21 @@ func TestGetByUsername_ErrNotFound(t *testing.T) {
 func TestGetByUsername_ErrStorage(t *testing.T) {
 	conn, mock, _ := sqlmock.New()
 
-	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT \"registration_keys\".* FROM \"registration_keys\" inner join users on registration_keys.user_id = users.id WHERE (username = $1) ORDER BY \"registration_keys\".\"key\" ASC LIMIT 1") + "$").
-		WithArgs("bob").
+	mock.ExpectQuery("^" + regexp.QuoteMeta("SELECT * FROM \"registration_keys\" WHERE (\"user_id\" = $1)") + "$").
+		WithArgs("b3032140-e824-4b39-9be2-47e99f383f2b").
 		WillReturnError(fmt.Errorf("oops"))
 
 	db, _ := gorm.Open("postgres", conn)
 	repo := New(db)
+	user := &model.User{
+		Base: model.Base{
+			ID: uuid.MustParse("b3032140-e824-4b39-9be2-47e99f383f2b"),
+		},
+	}
 
-	user, err := repo.GetByUsername("bob")
+	key, err := repo.GetByUser(user)
 	assert.Error(t, err)
-	assert.Nil(t, user)
+	assert.Nil(t, key)
 	assert.Equal(t, ErrStorage, err)
 	assert.NoError(t, mock.ExpectationsWereMet())
 }

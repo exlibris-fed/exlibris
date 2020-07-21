@@ -12,26 +12,26 @@ import (
 )
 
 var (
-	// ErrNotFound is returned when a record cannot be found
+	// ErrNotFound is returned when a record cannot be found.
 	ErrNotFound = errors.New("reviews could not be found for book")
-	// ErrNotCreated is returned when a record cannot be created
+	// ErrNotCreated is returned when a record cannot be created.
 	ErrNotCreated = errors.New("review for book could not be created")
-	// ErrStorage is returned when an unknown storage issue occurs
+	// ErrStorage is returned when an unknown storage issue occurs.
 	ErrStorage = errors.New("could not retrieve data")
 )
 
-// New creates a new Repository instance for reviews
+// New creates a new Repository instance for reviews.
 func New(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
-// Repository is used for querying and creating reviews
+// Repository is used for querying and creating reviews.
 type Repository struct {
 	db *gorm.DB
 }
 
-// GetReviews returns the reviews for a given book
-// Preloads the User object
+// GetReviews returns the reviews for a given book.
+// Preloads the User object.
 func (r *Repository) GetReviews(book *model.Book) ([]model.Review, error) {
 	var reviews []model.Review
 	if err := r.db.Preload("User").
@@ -42,7 +42,7 @@ func (r *Repository) GetReviews(book *model.Book) ([]model.Review, error) {
 	return reviews, nil
 }
 
-// CreateReview will create a new review for a given book
+// CreateReview will create a new review for a given book.
 func (r *Repository) CreateReview(user *model.User, book *model.Book, text string, rating int) (*model.Review, error) {
 	// @TODO: rating
 	book, err := books.New(r.db).GetByID(book.OpenLibraryID)
