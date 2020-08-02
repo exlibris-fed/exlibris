@@ -27,8 +27,8 @@ var (
 	regexpID        = regexp.MustCompile("/user/([^\\/]+)$")
 	regexpOutbox    = regexp.MustCompile("/user/([^\\/]+)/outbox$")
 	regexpInbox     = regexp.MustCompile("/user/([^\\/]+)/inbox$")
-	regexpRead      = regexp.MustCompile("/user/([^\\/]+)/read/(.*)")
-	regexpFollowers = regexp.MustCompile("/user/([^\\/]+)/followers")
+	regexpRead      = regexp.MustCompile("/user/([^\\/]+)/read/([a-z0-9-]+)$")
+	regexpFollowers = regexp.MustCompile("/user/([^\\/]+)/followers$")
 )
 
 const (
@@ -42,7 +42,6 @@ const (
 // A Database is a connection to a database. It uses the gorm connection, so that we can still use the models.
 type Database struct {
 	baseURL    string
-	DB         *gorm.DB // TODO needed?
 	cfg        *config.Config
 	outboxRepo *outbox.Repository
 	inboxRepo  *inbox.Repository
@@ -187,7 +186,7 @@ func (d *Database) SetInbox(c context.Context, inbox vocab.ActivityStreamsOrdere
 		}
 	}
 
-	// TODO remove what doesn;t exist (requires setting in get)
+	// TODO remove what doesn't exist (requires setting in get)
 	return nil
 }
 
