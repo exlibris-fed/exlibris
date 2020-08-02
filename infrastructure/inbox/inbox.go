@@ -22,29 +22,34 @@ type Repository struct {
 //
 // TODO pagination
 func (r *Repository) GetByIRI(inboxIRI *url.URL) (entries []*model.InboxEntry, err error) {
-	err = r.db.Where("inbox_iri = ?", inboxIRI.String()).
+	if gormErr := r.db.Where("inbox_iri = ?", inboxIRI.String()).
 		Order("created_at desc").
 		Find(&entries).
-		Error
+		Error; gormErr != nil {
+		err = ErrNotFound
+	}
 	return
 }
 
 // Contains returns whether an inbox contains a specific IRI.
 func (r *Repository) Contains(inboxIRI, iri *url.URL) (contains bool, err error) {
 	var count int
-	err = r.db.Model(&model.InboxEntry{}).
+	if gormErr := r.db.Model(&model.InboxEntry{}).
 		Where("inbox_iri = ? AND uri = ?", inboxIRI.String(), iri.String()).
 		Count(&count).
-		Error
-
-	if err != nil {
+		Error; gormErr != nil {
+		err = ErrNotFound
 		return
 	}
+
 	contains = count > 0
 	return
 }
 
 // Create persists a new InboxEntry
 func (r *Repository) Create(i *model.InboxEntry) error {
-	return r.db.Create(i).Error
+	if err := r.db.Create(i).Error; err != nil {
+		return ErrEntryNotCreated
+	}
+	return nil
 }

@@ -20,14 +20,19 @@ type Repository struct {
 
 // GetByIRI retrieves the contents of a user's outbox given the IRI to it.
 func (r *Repository) GetByIRI(outboxIRI *url.URL) (entries []*model.OutboxEntry, err error) {
-	err = r.db.Where("outbox_iri = ?", outboxIRI.String()).
+	if gormErr := r.db.Where("outbox_iri = ?", outboxIRI.String()).
 		Order("created_at desc").
 		Find(&entries).
-		Error
+		Error; gormErr != nil {
+			err = ErrNotFound
+		}
 	return
 }
 
 // Create persists a new OutboxEntry
 func (r *Repository) Create(o *model.OutboxEntry) error {
-	return r.db.Create(o).Error
+	if err := r.db.Create(o).Error; err != nil {
+		return ErrEntryNotCreated
+	}
+	return nil
 }

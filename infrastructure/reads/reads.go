@@ -53,8 +53,10 @@ func (r *Repository) Create(read *model.Read) (*model.Read, error) {
 // GetByID retrieves a read by its id (which is a uri to the activity).
 func (r *Repository) GetByID(id string) (result *model.Read, err error) {
 	result = new(model.Read)
-	err = r.db.Where("id = ?", id).
+	if err = r.db.Where("id = ?", id).
 		First(result).
-		Error
+		Error; err != nil {
+			return nil, ErrNotFound
+		}
 	return
 }
