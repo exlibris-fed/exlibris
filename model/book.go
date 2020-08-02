@@ -14,14 +14,13 @@ import (
 // A Book is something that can be read. Currently this only supports things which are in the Library of Congress API, but eventually it'd be great to support fanfiction and other online-only sources.
 type Book struct {
 	BaseEvents
-	OpenLibraryID string    `gorm:"primary_key" json:"open_library_id"`
-	Title         string    `gorm:"not null;index" json:"title"`
-	Published     int       `json:"published,omitempty"`
-	ISBN          string    `json:"isbn,omitempty"`
-	Authors       []Author  `gorm:"many2many:book_authors;null"`
-	Subjects      []Subject `gorm:"many2many:book_subjects;null"`
-	Description   string    `gorm:"null" json:"description"`
-	Covers        []Cover   `gorm:"foreignkey:BookID;association_foreignkey:OpenLibraryID;null" json:"covers"`
+	OpenLibraryID string   `gorm:"primary_key" json:"open_library_id"`
+	Title         string   `gorm:"not null;index" json:"title"`
+	Published     int      `json:"published,omitempty"`
+	ISBN          string   `json:"isbn,omitempty"`
+	Authors       []Author `gorm:"many2many:book_authors;null"`
+	Description   string   `gorm:"null" json:"description"`
+	Covers        []Cover  `gorm:"foreignkey:BookID;association_foreignkey:OpenLibraryID;null" json:"covers"`
 }
 
 // NewBook returns a new instance of a book
