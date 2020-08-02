@@ -58,7 +58,6 @@ func New(db *gorm.DB, cfg *config.Config) *Database {
 	}
 	return &Database{
 		baseURL:    uri.String(),
-		DB:         db,
 		cfg:        cfg,
 		outboxRepo: outbox.New(db),
 		inboxRepo:  inbox.New(db),
