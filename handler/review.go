@@ -30,12 +30,19 @@ func (h *Handler) Review(w http.ResponseWriter, r *http.Request) {
 	vars := mux.Vars(r)
 	id := vars["book"]
 
-	var reviews []*model.Review
+	book, err := h.bookService.Get(id)
+	if err != nil {
+		// @TODO: Check the erro to see if we should 404 or not
+		log.Println(err)
+		w.WriteHeader(http.StatusInternalServerError)
+		return
+	}
+
+	var reviews []model.Review
 	var response []dto.Review
-	var err error
 	if r.Method == http.MethodGet {
 		// get the review for the book
-		reviews, err = h.reviewsRepo.GetReviews(id)
+		reviews, err = h.reviewsRepo.GetReviews(book)
 		if err != nil {
 			log.Println(err)
 		}
@@ -53,13 +60,13 @@ func (h *Handler) Review(w http.ResponseWriter, r *http.Request) {
 		}
 
 		var review *model.Review
-		review, err = h.reviewsRepo.CreateReview(user, id, reviewData.Review, 0)
+		review, err = h.reviewsRepo.CreateReview(user, book, reviewData.Review, 0)
 		if errors.Is(err, reviewsinfra.ErrNotFound) {
 			// Trying to create a review about a book no one has viewed or read
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		reviews = []*model.Review{review}
+		reviews = []model.Review{*review}
 	} else {
 		log.Println("Bad request")
 		w.WriteHeader(http.StatusMethodNotAllowed)

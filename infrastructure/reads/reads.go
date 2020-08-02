@@ -8,22 +8,29 @@ import (
 )
 
 var (
-	ErrNotFound   = errors.New("reads could not be found for user")
+	// ErrNotFound is returned when a record cannot be found.
+	ErrNotFound = errors.New("reads could not be found for user")
+	// ErrNotCreated is returned when a record cannot be created.
 	ErrNotCreated = errors.New("read could not be saved")
 )
 
+// New creates a new Repository instance for reads.
 func New(db *gorm.DB) *Repository {
 	return &Repository{db: db}
 }
 
+// Repository is used for querying and creating reads.
 type Repository struct {
 	db *gorm.DB
 }
 
-func (r *Repository) GetByUser(user *model.User) ([]*model.Read, error) {
+// Get returns reads from the database given a user.
+// Will also return the books and its authors.
+func (r *Repository) Get(user *model.User) ([]*model.Read, error) {
 	reads := []*model.Read{}
 	result := r.db.Preload("Book").
 		Preload("Book.Authors").
+		Preload("Book.Covers").
 		Where("user_id = ?", user.ID).
 		Order("created_at desc").
 		Find(&reads)
@@ -34,6 +41,7 @@ func (r *Repository) GetByUser(user *model.User) ([]*model.Read, error) {
 	return reads, nil
 }
 
+// Create will persist the read to the database.
 func (r *Repository) Create(read *model.Read) (*model.Read, error) {
 	result := r.db.Create(read)
 	if result.Error != nil {
@@ -42,8 +50,8 @@ func (r *Repository) Create(read *model.Read) (*model.Read, error) {
 	return result.Value.(*model.Read), nil
 }
 
-// Get retrieves a read by its id (which is a uri to the activity).
-func (r *Repository) Get(id string) (result *model.Read, err error) {
+// GetByID retrieves a read by its id (which is a uri to the activity).
+func (r *Repository) GetByID(id string) (result *model.Read, err error) {
 	result = new(model.Read)
 	err = r.db.Where("id = ?", id).
 		First(result).

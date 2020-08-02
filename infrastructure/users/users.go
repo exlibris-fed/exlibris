@@ -12,17 +12,17 @@ import (
 )
 
 var (
-	// ErrNotFound is the error returned when a user does not exist.
+	// ErrNotFound is returned when a record cannot be found.
 	ErrNotFound = errors.New("user could not be found")
-
-	// ErrStorage is a generic database error.
+	// ErrNotCreated is returned when a record cannot be created.
+	ErrNotCreated = errors.New("user could not be created")
+	// ErrStorage is returned when an unknown storage issue occurs.
 	ErrStorage = errors.New("error with storage")
-
-	// ErrDuplicate is the error returned when trying to create a user that already exists.
+	// ErrDuplicate occurs when the user already exists.
 	ErrDuplicate = errors.New("user already exists")
 )
 
-// New returns a User Repository.
+// New creates a new Repository instance for users.
 func New(db *gorm.DB) *Repository {
 	return &Repository{
 		db:      db,
@@ -30,7 +30,7 @@ func New(db *gorm.DB) *Repository {
 	}
 }
 
-// A Repository is the repository pattern for Users.
+// Repository is used for querying and creating users.
 type Repository struct {
 	db      *gorm.DB
 	keyRepo *registrationkeys.Repository
@@ -62,46 +62,48 @@ func (r *Repository) GetByUsernameWithFollowers(name string) (*model.User, error
 	return &user, nil
 }
 
-// Create persists a new user.
+// Create the given user with a registration key.
 func (r *Repository) Create(user *model.User, key *model.RegistrationKey) (*model.User, error) {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		if err := tx.Create(user).Error; err != nil {
-			return err
-		}
-		if err := tx.Create(key).Error; err != nil {
-			return err
-		}
-		return nil
-	})
 
-	if err != nil {
+	if err := r.db.Create(user).Error; err != nil {
 		if strings.Contains(err.Error(), "duplicate key value violates unique constraint") {
 			return nil, ErrDuplicate
 		}
+		return nil, ErrNotCreated
 	}
-	return user, err
+
+	key.User = *user
+	key.UserID = user.ID
+
+	if _, err := r.keyRepo.Create(key); err != nil {
+		return nil, ErrNotCreated
+	}
+
+	return user, nil
 }
 
-// Save will persist updates to a user.
+// Save a given user to the database.
 func (r *Repository) Save(user *model.User) (*model.User, error) {
-	err := r.db.Transaction(func(tx *gorm.DB) error {
-		result := r.db.Save(user)
-		if result.Error != nil {
-			return ErrStorage
+	result := r.db.Save(user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
 		}
-		user = result.Value.(*model.User)
-		return nil
-	})
-	if err != nil {
-		return nil, err
+		return nil, ErrStorage
 	}
+	user = result.Value.(*model.User)
 	return user, nil
 }
 
 // Activate will set a user's verified status to true, removing the registration key.
 func (r *Repository) Activate(id uuid.UUID) error {
+	// @FIXME: Activating a user happens by passing in the registration key uuid
+	// so the user object has to essentially have the registration object in hand
+	// but the user object doesn't have a reference to the registration object, the
+	// relationship is that a registration key belongs to a user. It seems
+	// it would make more sense to have a registration key activate the user.
 
-	return r.db.Transaction(func(tx *gorm.DB) error {
+	err := r.db.Transaction(func(tx *gorm.DB) error {
 		key, err := r.keyRepo.Get(id)
 		if err != nil {
 			return err
@@ -115,4 +117,11 @@ func (r *Repository) Activate(id uuid.UUID) error {
 		}
 		return nil
 	})
+	if err != nil {
+		if errors.Is(err, registrationkeys.ErrNotFound) {
+			return ErrNotFound
+		}
+		return ErrStorage
+	}
+	return nil
 }

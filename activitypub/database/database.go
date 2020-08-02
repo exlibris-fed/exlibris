@@ -233,7 +233,7 @@ func (d *Database) OutboxForInbox(c context.Context, inboxIRI *url.URL) (outboxI
 func (d *Database) Exists(c context.Context, id *url.URL) (exists bool, err error) {
 	log.Println("in exists, looking at", id.String())
 	// TODO things other than reads
-	read, getErr := d.readsRepo.Get(id.String())
+	read, getErr := d.readsRepo.GetByID(id.String())
 	if getErr == nil && read.ID == id.String() {
 		log.Println("they do exist")
 		exists = true
@@ -266,7 +266,7 @@ func (d *Database) Get(c context.Context, id *url.URL) (value vocab.Type, err er
 }
 
 func (d *Database) getRead(strID string) (value vocab.Type, err error) {
-	r, err := d.readsRepo.Get(strID)
+	r, err := d.readsRepo.GetByID(strID)
 	if err != nil {
 		return
 	}
