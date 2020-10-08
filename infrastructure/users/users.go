@@ -1,3 +1,4 @@
+// Package users contains the repository for User objects.
 package users
 
 import (
@@ -35,11 +36,23 @@ type Repository struct {
 	keyRepo *registrationkeys.Repository
 }
 
-// GetByUsername returns a user by user name.
+// GetByUsername returns a User object given a username. It does not fill in any related objects via `Preload`.
 func (r *Repository) GetByUsername(name string) (*model.User, error) {
 	var user model.User
-	result := r.db.Where("username = ?", name).
-		First(&user)
+	result := r.db.Where("username = ?", name).First(&user)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, ErrNotFound
+		}
+		return nil, ErrStorage
+	}
+	return &user, nil
+}
+
+// GetByUsernameWithFollowers returns a User object given a username. It includes their list of followers.
+func (r *Repository) GetByUsernameWithFollowers(name string) (*model.User, error) {
+	var user model.User
+	result := r.db.Preload("Followers").Where("username = ?", name).First(&user)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
 			return nil, ErrNotFound
@@ -82,7 +95,7 @@ func (r *Repository) Save(user *model.User) (*model.User, error) {
 	return user, nil
 }
 
-// Activate a user given a key's ID.
+// Activate will set a user's verified status to true, removing the registration key.
 func (r *Repository) Activate(id uuid.UUID) error {
 	// @FIXME: Activating a user happens by passing in the registration key uuid
 	// so the user object has to essentially have the registration object in hand

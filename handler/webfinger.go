@@ -34,7 +34,7 @@ func (h *Handler) HandleWebfinger(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	split := strings.Split(resource, ":")
+	split := strings.SplitN(resource, ":", 2)
 	if len(split) != 2 || split[0] != AccountURIScheme {
 		w.WriteHeader(http.StatusBadRequest)
 		return

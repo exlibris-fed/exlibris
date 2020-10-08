@@ -106,7 +106,13 @@ export default {
       if (payload && payload.kid) {
         this.axios.get('/user/' + payload.kid)
           .then(function (response) { self.user = response.data })
-          .catch(r => console.error(r))
+          .catch(function (error) {
+            // if your user doesn't exist, you are not logged in
+            if (error && error.response && error.response.status === 404) {
+              self.$router.push({ name: 'logout' })
+            }
+            console.error(error)
+          })
       }
     },
     handleLogin () {

@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/exlibris-fed/exlibris/key"
@@ -41,6 +42,7 @@ type User struct {
 	Password         []byte `json:"-"`
 	PrivateKey       []byte `json:"-"`
 	Summary          string
+	Followers        []Follower        `gorm:"foreignkey:UserID"`
 	CryptoPrivateKey crypto.PrivateKey `gorm:"-"`
 	Local            bool              `json:"-"`
 	Verified         bool              `json:"-"`
@@ -57,7 +59,7 @@ func NewUser(username, password, email, displayName string) (*User, error) {
 		Base: Base{
 			ID: uuid.New(),
 		},
-		HumanID:     fmt.Sprintf("%s/@%s", domain, username),
+		HumanID:     fmt.Sprintf("%s/@%s", domain, strings.ToLower(username)),
 		Username:    username,
 		Email:       email,
 		DisplayName: displayName,
@@ -95,7 +97,7 @@ func (u *User) GenerateKeys() error {
 
 // IRI returns a url representing the user's profile
 func (u *User) IRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s", u.HumanID))
+	URL, err := url.Parse(fmt.Sprintf("https://%s", strings.ToLower(u.Username)))
 	if err != nil {
 		log.Printf("error creating IRI for user %s (%s): %s", u.ID, u.Username, err)
 		return nil
@@ -105,7 +107,7 @@ func (u *User) IRI() *url.URL {
 
 // OutboxIRI returns a url representing the user's outbox
 func (u *User) OutboxIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/outbox", u.HumanID))
+	URL, err := url.Parse(fmt.Sprintf(outboxURL, strings.ToLower(u.Username)))
 	if err != nil {
 		log.Printf("error creating outbox IRI for user %s (%s): %s", u.ID, u.Username, err)
 		return nil
@@ -115,9 +117,19 @@ func (u *User) OutboxIRI() *url.URL {
 
 // InboxIRI returns a url representing the user's inbox
 func (u *User) InboxIRI() *url.URL {
-	URL, err := url.Parse(fmt.Sprintf("https://%s/inbox", u.HumanID))
+	URL, err := url.Parse(fmt.Sprintf(inboxURL, strings.ToLower(u.Username)))
 	if err != nil {
-		log.Printf("error creating inbox IRI for user %s (%s): %s", u.HumanID, u.Username, err)
+		log.Printf("error creating inbox IRI for user %s (%s): %s", u.Username, u.Username, err)
+		return nil
+	}
+	return URL
+}
+
+// FollowersIRI returns a url representing the user's followers
+func (u *User) FollowersIRI() *url.URL {
+	URL, err := url.Parse(fmt.Sprintf(followersURL, strings.ToLower(u.Username)))
+	if err != nil {
+		log.Printf("error creating followers IRI for user %s (%s): %s", u.Username, u.Username, err)
 		return nil
 	}
 	return URL
@@ -156,11 +168,22 @@ func (u *User) ToType() vocab.Type {
 	user := streams.NewActivityStreamsPerson()
 
 	URL, err := url.Parse(u.HumanID)
-	if err == nil {
-		id := streams.NewJSONLDIdProperty()
-		id.SetIRI(URL)
-		user.SetJSONLDId(id)
+	if err != nil {
+		log.Printf("error generating user ID for user '%s': %s", u.Username, err.Error())
+		return nil
 	}
+
+	id := streams.NewJSONLDIdProperty()
+	id.SetIRI(URL)
+	user.SetJSONLDId(id)
+
+	inboxProperty := streams.NewActivityStreamsInboxProperty()
+	inboxProperty.SetIRI(u.InboxIRI())
+	user.SetActivityStreamsInbox(inboxProperty)
+
+	outboxProperty := streams.NewActivityStreamsOutboxProperty()
+	outboxProperty.SetIRI(u.OutboxIRI())
+	user.SetActivityStreamsOutbox(outboxProperty)
 
 	name := streams.NewActivityStreamsNameProperty()
 	name.AppendXMLSchemaString(u.DisplayName)
@@ -170,5 +193,30 @@ func (u *User) ToType() vocab.Type {
 	username.SetXMLSchemaString(u.Username)
 	user.SetActivityStreamsPreferredUsername(username)
 
+	// TODO `followers`, `following`, `url` and `summary`
+
 	return user
+}
+
+// FollowersToType renders the users' followers as an OrderedCollection. It is returned as
+// the list in reverse order, so that new entries are first.
+func (u *User) FollowersToType() vocab.Type {
+	followers := streams.NewActivityStreamsOrderedCollection()
+
+	id := streams.NewJSONLDIdProperty()
+	id.SetIRI(u.FollowersIRI())
+
+	items := streams.NewActivityStreamsOrderedItemsProperty()
+	for _, follower := range u.Followers {
+		log.Println("appending follower", follower.ID)
+		iri, err := url.Parse(follower.ID)
+		if err != nil {
+			log.Println("error parsing url for followers list:", err.Error())
+			continue
+		}
+		items.PrependIRI(iri)
+	}
+	followers.SetActivityStreamsOrderedItems(items)
+
+	return followers
 }

@@ -11,12 +11,15 @@ import (
 	"github.com/exlibris-fed/exlibris/infrastructure/users"
 	"github.com/exlibris-fed/exlibris/service"
 
+	"github.com/go-fed/activity/pub"
 	"github.com/jinzhu/gorm"
 )
 
 // A Handler accepts http requests.
 type Handler struct {
 	ap                   *activitypub.ActivityPub
+	actor                pub.FederatingActor
+	streamHandler        pub.HandlerFunc
 	cfg                  *config.Config
 	bookService          *service.Book
 	authorService        *service.Author
@@ -31,9 +34,12 @@ type Handler struct {
 
 // New creates a new Handler to be used in processing http requests.
 func New(db *gorm.DB, cfg *config.Config) *Handler {
+	ap := activitypub.New(db, cfg)
 	return &Handler{
 		cfg:                  cfg,
-		ap:                   activitypub.New(db),
+		ap:                   activitypub.New(db, cfg),
+		actor:                ap.NewFederatingActor(),
+		streamHandler:        ap.NewStreamsHandler(),
 		bookService:          service.NewBook(db),
 		authorService:        service.NewAuthor(db),
 		editionsService:      service.NewEditions(db),

@@ -4,6 +4,7 @@ import (
 	"errors"
 
 	"github.com/exlibris-fed/exlibris/model"
+
 	"github.com/jinzhu/gorm"
 )
 
